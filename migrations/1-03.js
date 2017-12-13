@@ -211,7 +211,7 @@ module.exports.up = function (done) {
           'type':'function',
           'z':'2c9dd332.05334c',
           'name':'transform output',
-          'func':'\nconst _ = global.get('_');\n\nlet account = msg.payload[0];\n\n\nlet balance = _.get(account, 'balance', 0);\nlet mosaics = _.get(account, 'mosaics', {});\n\nmsg.payload = {balance, mosaics};\n\nreturn msg;',
+          'func':'\nconst _ = global.get(\'_\');\n\nlet account = msg.payload[0];\n\n\nlet balance = _.get(account, \'balance\', 0);\nlet mosaics = _.get(account, \'mosaics\', {});\n\nmsg.payload = {balance, mosaics};\n\nreturn msg;',
           'outputs':1,
           'noerr':0,
           'x':716.250007629395,
