@@ -2,6 +2,9 @@ require('dotenv').config();
 const path = require('path'),
   bunyan = require('bunyan'),
   util = require('util'),
+  nem = require('nem-sdk').default,
+  URL = require('url').URL,
+  nemUrl = new URL(process.env.NIS || 'http://23.228.67.85:7890'),
   log = bunyan.createLogger({name: 'core.rest'});
 
 /**
@@ -45,6 +48,10 @@ module.exports = {
     autoInstallModules: true,
     functionGlobalContext: {
       _: require('lodash'),
+      nem: {
+        endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
+        lib: nem
+      },
       factories: {
         messages: {
           address: require('../factories/messages/addressMessageFactory'),
