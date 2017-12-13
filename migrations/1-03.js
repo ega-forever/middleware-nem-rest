@@ -207,19 +207,17 @@ module.exports.up = function (done) {
           ]
         },
         {
-          'id': '36a27ede.06cd52',
-          'type': 'function',
-          'z': '2c9dd332.05334c',
-          'name': 'transform output',
-          'func': '\nconst _ = global.get(\'_\');\n\nlet account = msg.payload[0];\n\n\nmsg.payload = _.get(account, \'balance\', 0);\n\n\nreturn msg;',
-          'outputs': 1,
-          'noerr': 0,
-          'x': 716.250007629395,
-          'y': 581.24999904632,
-          'wires': [
-            [
-              '6e227f25.b210e'
-            ]
+          'id':'36a27ede.06cd52',
+          'type':'function',
+          'z':'2c9dd332.05334c',
+          'name':'transform output',
+          'func':'\nconst _ = global.get('_');\n\nlet account = msg.payload[0];\n\n\nlet balance = _.get(account, 'balance', 0);\nlet mosaics = _.get(account, 'mosaics', {});\n\nmsg.payload = {balance, mosaics};\n\nreturn msg;',
+          'outputs':1,
+          'noerr':0,
+          'x':716.250007629395,
+          'y':581.24999904632,
+          'wires':[
+            ['6e227f25.b210e']
           ]
         },
         {
