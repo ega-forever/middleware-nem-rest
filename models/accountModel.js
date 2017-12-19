@@ -16,7 +16,8 @@ const Account = new mongoose.Schema({
     required: true
   },
   balance: {type: mongoose.Schema.Types.Long, default: 0},
-  created: {type: Date, required: true, default: Date.now}
+  created: {type: Date, required: true, default: Date.now},
+  mosaics: {type: mongoose.Schema.Types.Mixed, default: {}}
 });
 
 module.exports = mongoose.model('NemAccount', Account);

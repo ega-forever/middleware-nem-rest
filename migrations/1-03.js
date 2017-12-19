@@ -143,7 +143,7 @@ module.exports.up = function (done) {
           'type': 'function',
           'z': '2c9dd332.05334c',
           'name': 'transform params',
-          'func': '\nmsg.payload = {\n    model: \'NemAccount\', \n    request: {\n       address: msg.payload.address.toLowerCase()\n   }\n};\n\nreturn msg;',
+          'func': '\nmsg.payload = {\n    model: \'NemAccount\', \n    request: {\n       address: msg.payload.address\n   }\n};\n\nreturn msg;',
           'outputs': 1,
           'noerr': 0,
           'x': 350,
@@ -176,7 +176,7 @@ module.exports.up = function (done) {
           'type': 'function',
           'z': '2c9dd332.05334c',
           'name': 'transform params',
-          'func': '\nmsg.payload = {\n    model: \'NemAccount\', \n    request: {\n       address: msg.req.params.addr.toLowerCase()\n   }\n};\n\nreturn msg;',
+          'func': '\nmsg.payload = {\n    model: \'NemAccount\', \n    request: {\n       address: msg.req.params.addr\n   }\n};\n\nreturn msg;',
           'outputs': 1,
           'noerr': 0,
           'x': 332.500003814698,
@@ -207,19 +207,17 @@ module.exports.up = function (done) {
           ]
         },
         {
-          'id': '36a27ede.06cd52',
-          'type': 'function',
-          'z': '2c9dd332.05334c',
-          'name': 'transform output',
-          'func': '\nconst _ = global.get(\'_\');\n\nlet account = msg.payload[0];\n\n\nmsg.payload = _.get(account, \'balance\', 0);\n\n\nreturn msg;',
-          'outputs': 1,
-          'noerr': 0,
-          'x': 716.250007629395,
-          'y': 581.24999904632,
-          'wires': [
-            [
-              '6e227f25.b210e'
-            ]
+          'id':'36a27ede.06cd52',
+          'type':'function',
+          'z':'2c9dd332.05334c',
+          'name':'transform output',
+          'func':'\nconst _ = global.get(\'_\');\n\nlet account = msg.payload[0];\n\n\nlet balance = _.get(account, \'balance\', 0);\nlet mosaics = _.get(account, \'mosaics\', {});\n\nmsg.payload = {balance, mosaics};\n\nreturn msg;',
+          'outputs':1,
+          'noerr':0,
+          'x':716.250007629395,
+          'y':581.24999904632,
+          'wires':[
+            ['6e227f25.b210e']
           ]
         },
         {
@@ -315,7 +313,7 @@ module.exports.up = function (done) {
           'type': 'async-function',
           'z': '2c9dd332.05334c',
           'name': '',
-          'func': 'const nem = global.get(\'nem.lib\');\nconst endpoint = global.get(\'nem.endpoint\');\nconst _ = global.get(\'_\');\n\nmsg.payload.address = msg.payload.address.replace(/[^\\w\\s]/gi, \'\').toLowerCase();\n\nlet data = await nem.com.requests.account.data(endpoint, msg.payload.address);\n\n\nmsg.payload = {\n    model: \'NemAccount\', \n    request: {\n       address: msg.payload.address,\n       balance: _.get(data, \'account.balance\', 0)\n   }\n};\n\n\nreturn msg;',
+          'func': 'const nem = global.get(\'nem.lib\');\nconst endpoint = global.get(\'nem.endpoint\');\nconst _ = global.get(\'_\');\n\nmsg.payload.address = msg.payload.address.replace(/[^\\w\\s]/gi, \'\');\n\nlet data = await nem.com.requests.account.data(endpoint, msg.payload.address);\n\n\nmsg.payload = {\n    model: \'NemAccount\', \n    request: {\n       address: msg.payload.address,\n       balance: _.get(data, \'account.balance\', 0)\n   }\n};\n\n\nreturn msg;',
           'outputs': 1,
           'noerr': 1,
           'x': 370,
