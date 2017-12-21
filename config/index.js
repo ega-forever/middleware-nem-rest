@@ -4,6 +4,7 @@ const path = require('path'),
   util = require('util'),
   nem = require('nem-sdk').default,
   URL = require('url').URL,
+  _ = require('lodash'),
   nemUrl = new URL(process.env.NIS || 'http://23.228.67.85:7890'),
   log = bunyan.createLogger({name: 'core.rest'});
 
@@ -28,8 +29,14 @@ const path = require('path'),
 
 module.exports = {
   mongo: {
-    uri: process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-    collectionPrefix: process.env.MONGO_COLLECTION_PREFIX || 'nem'
+    accounts: {
+      uri: process.env.MONGO_ACCOUNTS_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
+      collectionPrefix: process.env.MONGO_COLLECTION_PREFIX || 'nem'
+    }
+  },
+  rabbit: {
+    url: process.env.RABBIT_URI || 'amqp://localhost:5672',
+    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_bitcoin'
   },
   rest: {
     domain: process.env.DOMAIN || 'localhost',
@@ -39,7 +46,7 @@ module.exports = {
     mongo: {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data'
     },
-    autoSyncMigrations: process.env.NODERED_AUTO_SYNC_MIGRATIONS || true,
+    autoSyncMigrations: _.isString(process.env.NODERED_AUTO_SYNC_MIGRATIONS) ? parseInt(process.env.NODERED_AUTO_SYNC_MIGRATIONS) : true,
     httpAdminRoot: '/admin',
     httpNodeRoot: '/',
     debugMaxLength: 1000,
