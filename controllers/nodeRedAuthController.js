@@ -15,9 +15,7 @@ module.exports = {
   },
   authenticate: function (username, password) {
     return when.resolve((async () => {
-
       let user = await NodeRedUserModel.findOne({username: username, isActive: true});
-
       return user && bcrypt.compare(password, user.password) ?
         {username: user.username, permissions: user.permissions} : null;
 
