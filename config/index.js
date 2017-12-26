@@ -5,7 +5,9 @@ const path = require('path'),
   nem = require('nem-sdk').default,
   URL = require('url').URL,
   _ = require('lodash'),
-  nemUrl = new URL(process.env.NIS || 'http://23.228.67.85:7890'),
+  mongoose = require('mongoose'),
+  Promise = require('bluebird'),
+  nemUrl = new URL(process.env.NIS || 'http://localhost:7890'),
   log = bunyan.createLogger({name: 'core.rest'});
 
 /**
@@ -27,16 +29,21 @@ const path = require('path'),
  *    }}
  */
 
-module.exports = {
+let config = {
   mongo: {
     accounts: {
       uri: process.env.MONGO_ACCOUNTS_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix: process.env.MONGO_COLLECTION_PREFIX || 'nem'
+      collectionPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX ||'nem'
+    },
+    data: {
+      uri: process.env.MONGO_DATA_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
+      collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
+      useData: parseInt(process.env.USE_MONGO_DATA) || 0
     }
   },
   rabbit: {
     url: process.env.RABBIT_URI || 'amqp://localhost:5672',
-    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_bitcoin'
+    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
   },
   rest: {
     domain: process.env.DOMAIN || 'localhost',
@@ -50,7 +57,6 @@ module.exports = {
     httpAdminRoot: '/admin',
     httpNodeRoot: '/',
     debugMaxLength: 1000,
-    adminAuth: require('../controllers/nodeRedAuthController'),
     nodesDir: path.join(__dirname, '../'),
     autoInstallModules: true,
     functionGlobalContext: {
@@ -67,7 +73,6 @@ module.exports = {
         }
       }
     },
-    storageModule: require('../controllers/nodeRedStorageController'),
     logging: {
       console: {
         level: 'info',
@@ -80,3 +85,20 @@ module.exports = {
     }
   }
 };
+
+
+
+module.exports = (() => {
+  mongoose.Promise = Promise;
+
+  mongoose.red = mongoose.createConnection(config.nodered.mongo.uri);
+  mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
+
+  if (config.mongo.data.useData)
+    mongoose.data = mongoose.createConnection(config.mongo.data.uri);
+
+  config.nodered.adminAuth = require('../controllers/nodeRedAuthController');
+  config.nodered.storageModule = require('../controllers/nodeRedStorageController');
+  return config;
+})();
+
