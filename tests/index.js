@@ -32,9 +32,10 @@ describe('core/rest', function () { //todo add integration tests for query, push
     await new Promise(res => {
       request({
         url: `http://localhost:${config.rest.port}/addr/${ctx.address}/balance`,
-        method: 'GET'
+        method: 'GET',
+        json: true,
       }, (err, resp) => {
-        expect(JSON.parse(resp.body)).to.include({'balance': '10000000'});
+        expect(resp.body.balance).to.include({value: 10000000, amount: '10.000000'});
         res();
       })
     });
