@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "amqp-ts": "^1.4.0",
     "bluebird": "^3.5.0",
     "body-parser": "^1.17.2",
     "bunyan": "^1.8.12",
@@ -15,7 +16,6 @@
     "mongoose-long": "^0.1.1",
     "nem-sdk": "^1.6.1",
     "node-red": "^0.17.5",
-    "node-red-contrib-amqp": "^0.4.5",
     "query-to-mongo": "^0.7.0",
     "require-all": "^2.2.0"
   },
