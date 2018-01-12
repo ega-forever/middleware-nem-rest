@@ -33,13 +33,17 @@ let config = {
   mongo: {
     accounts: {
       uri: process.env.MONGO_ACCOUNTS_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX ||'nem'
+      collectionPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem'
     },
     data: {
       uri: process.env.MONGO_DATA_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
       collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
       useData: parseInt(process.env.USE_MONGO_DATA) || 0
     }
+  },
+  nis: {
+    server: process.env.NIS || 'http://localhost:7890',
+    network: process.env.NETWORK || -104,
   },
   rabbit: {
     url: process.env.RABBIT_URI || 'amqp://localhost:5672',
@@ -63,6 +67,7 @@ let config = {
       _: require('lodash'),
       nem: {
         endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
+        network: process.env.NETWORK || -104,
         lib: nem
       },
       factories: {
@@ -79,14 +84,12 @@ let config = {
         metrics: true,
         handler: () =>
           (msg) => {
-            log.info(util.inspect(msg, null, 3));
+     //       log.info(util.inspect(msg, null, 3));
           }
       }
     }
   }
 };
-
-
 
 module.exports = (() => {
   mongoose.Promise = Promise;
