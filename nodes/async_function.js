@@ -1,5 +1,6 @@
 const util = require('util'),
   vm = require('vm'),
+  _ = require('lodash'),
   Promise = require('bluebird');
 
 module.exports = function (RED) {
@@ -194,7 +195,7 @@ module.exports = function (RED) {
 
           let line = 0;
           let errorMessage;
-          let stack = err.stack.split(/\r?\n/);
+          let stack = _.get(err, 'stack', '').split(/\r?\n/);
           if (stack.length > 0) {
             while (line < stack.length && stack[line].indexOf('ReferenceError') !== 0)
               line++;
@@ -210,7 +211,7 @@ module.exports = function (RED) {
             }
           }
           if (!errorMessage)
-            errorMessage = err.toString();
+            errorMessage = _.isObject(err) ? JSON.stringify(err) : err.toString();
 
           this.error(errorMessage, msg);
         }
