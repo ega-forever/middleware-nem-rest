@@ -210,8 +210,11 @@ module.exports = function (RED) {
               }
             }
           }
-          if (!errorMessage)
+          if (!errorMessage && !stack)
             errorMessage = _.isObject(err) ? JSON.stringify(err) : err.toString();
+
+          if (!errorMessage && stack)
+            errorMessage = _.get(stack, 0, '');
 
           this.error(errorMessage, msg);
         }
