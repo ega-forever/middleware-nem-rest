@@ -24,7 +24,6 @@ const setMosaics = (mosaics) => {
 
 
 const getMosaics = (mosaics) => {
-  console.log(mosaics);
   return _.chain(mosaics).toPairs()
     .map(pair => {
       pair[0] = pair[0].replace('::', '.');
