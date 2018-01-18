@@ -22,7 +22,6 @@ const setMosaics = (mosaics) => {
     .value();
 };
 
-
 const getMosaics = (mosaics) => {
   return _.chain(mosaics).toPairs()
     .map(pair => {
@@ -46,13 +45,10 @@ const Account = new mongoose.Schema({
     vested: {type: mongoose.Schema.Types.Long, default: 0}
   },
   created: {type: Date, required: true, default: Date.now},
-  mosaics: {
-    confirmed: {type: mongoose.Schema.Types.Mixed, default: {}, set: setMosaics, get: getMosaics},
-    unconfirmed: {type: mongoose.Schema.Types.Mixed, default: {}, set: setMosaics, get: getMosaics}
-  }
+  mosaics: {type: mongoose.Schema.Types.Mixed, default: {}, set: setMosaics, get: getMosaics}
 }, {
-  toObject : {getters: true},
-  toJSON : {getters: true}
+  toObject: {getters: true},
+  toJSON: {getters: true}
 });
 
 module.exports = mongoose.accounts.model(`${config.mongo.accounts.collectionPrefix}Account`, Account);
