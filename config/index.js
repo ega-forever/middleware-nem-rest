@@ -8,6 +8,7 @@ const path = require('path'),
   mongoose = require('mongoose'),
   Promise = require('bluebird'),
   nemUrl = new URL(process.env.NIS || 'http://localhost:7890'),
+  nemWebsocketUrl = new URL(process.env.WEBSOCKET_NIS || 'http://localhost:7880'),
   log = bunyan.createLogger({name: 'core.rest'});
 
 /**
@@ -67,6 +68,7 @@ let config = {
       _: require('lodash'),
       nem: {
         endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
+        websocketEndpoint: nem.model.objects.create('endpoint')(`${nemWebsocketUrl.protocol}//${nemWebsocketUrl.hostname}`, nemWebsocketUrl.port),
         network: process.env.NETWORK || -104,
         lib: nem
       },
@@ -80,7 +82,7 @@ let config = {
     },
     logging: {
       console: {
-        level: 'info',
+        level: 'debug',
         metrics: true,
         handler: () =>
           (msg) => {
