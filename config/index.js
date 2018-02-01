@@ -1,7 +1,5 @@
 require('dotenv').config();
 const path = require('path'),
-  bunyan = require('bunyan'),
-  util = require('util'),
   nem = require('nem-sdk').default,
   URL = require('url').URL,
   _ = require('lodash'),
@@ -64,12 +62,12 @@ let config = {
       },
       settings: {
         mongo: {
-          accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'bitcoin',
-          collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'bitcoin'
+          accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
+          collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem'
         },
         rabbit: {
           url: process.env.RABBIT_URI || 'amqp://localhost:5672',
-          serviceName: process.env.RABBIT_SERVICE_NAME || 'app_bitcoin'
+          serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
         }
       },
       nem: {
