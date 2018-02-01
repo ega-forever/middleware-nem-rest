@@ -6,10 +6,8 @@ const path = require('path'),
   URL = require('url').URL,
   _ = require('lodash'),
   mongoose = require('mongoose'),
-  Promise = require('bluebird'),
   nemUrl = new URL(process.env.NIS || 'http://localhost:7890'),
-  nemWebsocketUrl = new URL(process.env.WEBSOCKET_NIS || 'http://localhost:7880'),
-  log = bunyan.createLogger({name: 'core.rest'});
+  nemWebsocketUrl = new URL(process.env.WEBSOCKET_NIS || 'http://localhost:7880');
 
 /**
  * @factory config
@@ -58,52 +56,31 @@ let config = {
     mongo: {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data'
     },
+    migrationsDir: path.join(__dirname, '../migrations'),
     autoSyncMigrations: _.isString(process.env.NODERED_AUTO_SYNC_MIGRATIONS) ? parseInt(process.env.NODERED_AUTO_SYNC_MIGRATIONS) : true,
-    httpAdminRoot: '/admin',
-    httpNodeRoot: '/',
-    debugMaxLength: 1000,
-    nodesDir: path.join(__dirname, '../'),
-    autoInstallModules: true,
     functionGlobalContext: {
-      _: require('lodash'),
+      connections: {
+        primary: mongoose
+      },
+      settings: {
+        mongo: {
+          accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'bitcoin',
+          collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'bitcoin'
+        },
+        rabbit: {
+          url: process.env.RABBIT_URI || 'amqp://localhost:5672',
+          serviceName: process.env.RABBIT_SERVICE_NAME || 'app_bitcoin'
+        }
+      },
       nem: {
         endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
         websocketEndpoint: nem.model.objects.create('endpoint')(`${nemWebsocketUrl.protocol}//${nemWebsocketUrl.hostname}`, nemWebsocketUrl.port),
         network: process.env.NETWORK || -104,
         lib: nem
       },
-      factories: {
-        messages: {
-          address: require('../factories/messages/addressMessageFactory'),
-          generic: require('../factories/messages/genericMessageFactory'),
-          tx: require('../factories/messages/txMessageFactory')
-        }
-      }
-    },
-    logging: {
-      console: {
-        level: 'debug',
-        metrics: true,
-        handler: () =>
-          (msg) => {
-            log.info(util.inspect(msg, null, 3));
-          }
-      }
     }
   }
 };
 
-module.exports = (() => {
-  mongoose.Promise = Promise;
-
-  mongoose.red = mongoose.createConnection(config.nodered.mongo.uri);
-  mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
-
-  if (config.mongo.data.useData)
-    mongoose.data = mongoose.createConnection(config.mongo.data.uri);
-
-  config.nodered.adminAuth = require('../controllers/nodeRedAuthController');
-  config.nodered.storageModule = require('../controllers/nodeRedStorageController');
-  return config;
-})();
+module.exports = config;
 

@@ -4,11 +4,15 @@ process.env.USE_MONGO_DATA = 1;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const config = require('../config'),
-  mongoose = require('mongoose'),
-  expect = require('chai').expect,
+  Promise = require('bluebird'),
+  mongoose = require('mongoose');
+
+mongoose.Promise = Promise;
+mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
+
+const expect = require('chai').expect,
   _ = require('lodash'),
   accountModel = require('../models/accountModel'),
-  Promise = require('bluebird'),
   nis = require('./services/nisRequestService'),
   request = require('request-promise'),
   ctx = {};
