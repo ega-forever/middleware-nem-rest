@@ -21,6 +21,7 @@ install:
 
 before_script:
     - echo NIS=http://bigalice2.nem.ninja:7890 > .env
+    - echo WEBSOCKET_NIS=http://bigalice2.nem.ninja:7778 >> .env
     - cd $TRAVIS_BUILD_DIR && pm2 start index.js
 
 
