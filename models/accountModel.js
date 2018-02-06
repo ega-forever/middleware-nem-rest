@@ -52,4 +52,15 @@ const Account = new mongoose.Schema({
   toJSON: {getters: true}
 });
 
+Account.pre('update', function (next) {
+  const mosaics = this.getUpdate().mosaics || _.get(this.getUpdate(), '$set.mosaics');
+
+  if (mosaics) {
+    this.update({}, {mosaics: undefined});
+    this.update({}, {mosaics: setMosaics(mosaics)});
+  }
+
+  next();
+});
+
 module.exports = mongoose.accounts.model(`${config.mongo.accounts.collectionPrefix}Account`, Account);
