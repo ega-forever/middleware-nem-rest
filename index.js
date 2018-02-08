@@ -1,16 +1,11 @@
 const config = require('./config'),
-  express = require('express'),
-  http = require('http'),
-  cors = require('cors'),
+  mongoose = require('mongoose'),
   bunyan = require('bunyan'),
   log = bunyan.createLogger({name: 'core.rest'}),
-  mongoose = require('mongoose'),
-  RED = require('node-red'),
   path = require('path'),
-  NodeRedStorageModel = require('./models/nodeRedStorageModel'),
-  NodeRedUserModel = require('./models/nodeRedUserModel'),
-  NodeMigrationModel = require('./models/migrationModel'),
-  bodyParser = require('body-parser');
+  _ = require('lodash'),
+  migrator = require('middleware_service.sdk').migrator,
+  redInitter = require('middleware_service.sdk').init;
 
 /**
  * @module entry point
@@ -18,41 +13,32 @@ const config = require('./config'),
  * and addresses manipulation
  */
 
+
 mongoose.Promise = Promise;
-mongoose.connect(config.mongo.accounts.uri, {useMongoClient: true});
-mongoose.red = mongoose.createConnection(config.nodered.mongo.uri);
+mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
 
-mongoose.red.model(NodeRedStorageModel.collection.collectionName, NodeRedStorageModel.schema);
-mongoose.red.model(NodeRedUserModel.collection.collectionName, NodeRedUserModel.schema);
-mongoose.red.model(NodeMigrationModel.collection.collectionName, NodeMigrationModel.schema);
+if (config.mongo.data.useData)
+  mongoose.data = mongoose.createConnection(config.mongo.data.uri);
 
-mongoose.connection.on('disconnected', function () {
-  log.error('mongo disconnected!');
-  process.exit(0);
-});
-
-require('require-all')({
-  dirname: path.join(__dirname, '/models'),
-  filter: /(.+Model)\.js$/
-});
+_.chain([mongoose.accounts, mongoose.data])
+  .compact().forEach(connection =>
+    connection.on('disconnected', function () {
+      log.error('mongo disconnected!');
+      process.exit(0);
+    })
+  ).value();
 
 const init = async () => {
 
+  require('require-all')({
+    dirname: path.join(__dirname, '/models'),
+    filter: /(.+Model)\.js$/
+  });
+
   if (config.nodered.autoSyncMigrations)
-    await require('./migrate');
+    await migrator.run(config.nodered.mongo.uri, path.join(__dirname, 'migrations'));
 
-  let app = express();
-  let httpServer = http.createServer(app);
-  app.use(cors());
-  app.use(bodyParser.urlencoded({extended: false}));
-  app.use(bodyParser.json());
-
-  RED.init(httpServer, config.nodered);
-  app.use(config.nodered.httpAdminRoot, RED.httpAdmin);
-  app.use(config.nodered.httpNodeRoot, RED.httpNode);
-
-  httpServer.listen(config.rest.port);
-  RED.start();
+  redInitter(config);
 
 };
 
