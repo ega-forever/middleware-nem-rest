@@ -29,6 +29,7 @@ The available routes are listed below:
 | /addr/{address}/balance   | GET |  | retrieve balance of the registered address
 | /tx   | POST | ``` {tx: <string>} ``` | broadcast raw transaction
 | /tx/{hash}   | GET | | return tx by its hash
+| /tx/{address}/history  | GET |  | retrieve transactions for the regsitered address [may set limit and skip parameters].
 
 
 #### REST guery language
@@ -76,6 +77,19 @@ The options are presented below:
 | NETWORK   | network name (alias)- is used for connecting via node rest api (see block processor section)
 | NISE   | node rest api path address 
 | NODERED_MONGO_URI   | the URI string for mongo collection for keeping node-red users and flows (optional, if omitted - then default MONGO_URI will be used)
+
+#### for tests
+
+set keys for account nem in testnet with balances > 0
+To apply your configuration, create a .env file in root folder of repo (in case it's not present already).
+Below is the expamle configuration:
+
+```
+NIS=http://192.3.61.243:7890
+ADDRESS_ONE=TB353453453453
+ADDRESS_TWO=TDY535453453453
+```
+
 
 License
 ----
