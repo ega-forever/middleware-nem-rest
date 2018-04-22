@@ -3,7 +3,7 @@
 Middleware service for which expose rest api
 
 ### Installation
-
+ 
 This module is a part of middleware services. You can install it in 2 ways:
 
 1) through core middleware installer  [middleware installer](https://www.npmjs.com/package/chronobank-middleware)
