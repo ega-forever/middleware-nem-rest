@@ -78,6 +78,31 @@ The options are presented below:
 | NISE   | node rest api path address 
 | NODERED_MONGO_URI   | the URI string for mongo collection for keeping node-red users and flows (optional, if omitted - then default MONGO_URI will be used)
 
+### format balance for accounts
+```
+balance:
+  confirmed:
+    value: '0'
+    amount: '0.0000'
+  unconfirmed:
+    value: '0'
+    amount: 0.0000'
+  vested:
+    value: '0
+    amount: '0.0000'
+mosaics:
+  nem:xem:
+    confirmed:
+      value: '0'
+      amount: '0.0000'
+    unconfirmed:
+      value: '0'
+      amount: 0.0000'
+    vested:
+      value: '0
+      amount: '0.0000'
+```
+
 #### for tests
 
 set keys for account nem in testnet with balances > 0

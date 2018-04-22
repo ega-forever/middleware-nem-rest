@@ -5,5 +5,7 @@
 */
 const accountModel = require('../../models/accountModel');
 module.exports = async (account) => {
-  return await new accountModel({address: account}).save();
+  return await accountModel.findOneAndUpdate({address: account}, {address: account}, {
+    upsert: true, new: true
+  });
 };
