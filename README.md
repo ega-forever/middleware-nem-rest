@@ -3,7 +3,7 @@
 Middleware service for which expose rest api
 
 ### Installation
-
+ 
 This module is a part of middleware services. You can install it in 2 ways:
 
 1) through core middleware installer  [middleware installer](https://www.npmjs.com/package/chronobank-middleware)
@@ -77,6 +77,31 @@ The options are presented below:
 | NETWORK   | network name (alias)- is used for connecting via node rest api (see block processor section)
 | NISE   | node rest api path address 
 | NODERED_MONGO_URI   | the URI string for mongo collection for keeping node-red users and flows (optional, if omitted - then default MONGO_URI will be used)
+
+### format balance for accounts
+```
+balance:
+  confirmed:
+    value: '0'
+    amount: '0.0000'
+  unconfirmed:
+    value: '0'
+    amount: 0.0000'
+  vested:
+    value: '0
+    amount: '0.0000'
+mosaics:
+  nem:xem:
+    confirmed:
+      value: '0'
+      amount: '0.0000'
+    unconfirmed:
+      value: '0'
+      amount: 0.0000'
+    vested:
+      value: '0
+      amount: '0.0000'
+```
 
 #### for tests
 
