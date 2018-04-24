@@ -225,6 +225,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         try {
           expect(resp.body).to.not.be.empty;
           const body = JSON.parse(resp.body);
+          console.log(resp);
           expect(body).to.be.an('array').not.empty;
 
           const respTx = body[0];
