@@ -275,7 +275,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         expect(respTx.recipient).to.equal(accounts[1]);
         expect(respTx.sender).to.equal(accounts[0]);
         expect(respTx).to.contain.all.keys([
-          'sender', 'hash', 'blockNumber', 'amount', 'timeStamp'
+          'hash', 'blockNumber', 'amount', 'timeStamp'
         ]);
         res();
       });
