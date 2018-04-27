@@ -172,7 +172,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         method: 'GET',
       }, async (err, resp) => {
         if (err || resp.statusCode !== 200) 
-          return rej(err || resp);
+          return rej(err);
 
         const body = JSON.parse(resp.body);
         expect(body.balance.confirmed.value).to.be.not.undefined;
@@ -210,7 +210,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     exampleTransactionHash = txs[0].hash;
     await new txModel(txs[0]).save();
     await new txModel(txs[1]).save();
-    await Promise.delay(4000);
+    await Promise.delay(8000);
 
     const query = 'limit=1';
 
@@ -220,12 +220,12 @@ describe('core/rest', function () { //todo add integration tests for query, push
         method: 'GET',
       }, async (err, resp) => {
         if (err || resp.statusCode !== 200) 
-          return rej(err || resp);
+          return rej(err);
 
         try {
           expect(resp.body).to.not.be.empty;
           const body = JSON.parse(resp.body);
-          console.log(resp);
+          console.log('VVV', body);
           expect(body).to.be.an('array').not.empty;
 
           const respTx = body[0];
@@ -237,7 +237,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
           );
           res();            
         } catch (e) {
-          rej(e || resp);
+          rej(e);
         }
       });
     });
@@ -255,7 +255,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         method: 'GET',
       }, async (err, resp) => {
         if (err || resp.statusCode !== 200) 
-          return rej(err || resp);
+          return rej(err);
 
         const body = JSON.parse(resp.body);
         expect(body).to.be.empty;
@@ -271,7 +271,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         method: 'GET',
       }, (err, resp) => {
         if (err || resp.statusCode !== 200) 
-          return rej(err || resp);
+          return rej(err);
 
         const respTx = JSON.parse(resp.body);
         expect(respTx.recipient).to.equal(accounts[1]);
