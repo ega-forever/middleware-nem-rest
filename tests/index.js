@@ -187,9 +187,9 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
   it('GET tx/:addr/history for some query params and one right transaction [0 => 1]', async () => {
     const txs = [{
-      'recipient' : accounts[1],
       'type' : '257',
       'signer' : 'fa97f4fd052e40937180f72987189df429cc1f79996d439787cd13b76ff46caf',
+      'recipient' : accounts[1],
       'sender' : accounts[0],
       'hash' : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
       'mosaics' : [],
@@ -224,9 +224,6 @@ describe('core/rest', function () { //todo add integration tests for query, push
         try {
           expect(resp.body).to.not.be.empty;
           const body = JSON.parse(resp.body);
-          console.log('VVV', body);
-          const txM = await txModel.find({sender: accounts[0]});
-          console.log('TXM', txM);
           expect(body).to.be.an('array').not.empty;
 
           const respTx = body[0];
