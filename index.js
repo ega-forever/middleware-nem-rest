@@ -21,7 +21,8 @@ const config = require('./config'),
 
 mongoose.Promise = Promise;
 mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
-mongoose.data = mongoose.createConnection(config.mongo.data.uri);
+if (config.mongo.data.useData) 
+  mongoose.data = mongoose.createConnection(config.mongo.data.uri);
 
 _.chain([mongoose.accounts, mongoose.data])
   .compact().forEach(connection =>
