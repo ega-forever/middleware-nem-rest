@@ -210,6 +210,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     exampleTransactionHash = txs[0].hash;
     await new txModel(txs[0]).save();
     await new txModel(txs[1]).save();
+    console.log(accounts[1], accounts[0]);
 
     const query = 'limit=1';
 
