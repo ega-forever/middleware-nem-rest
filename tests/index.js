@@ -76,9 +76,10 @@ describe('core/rest', function () { //todo add integration tests for query, push
     const newAddress = `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
     accounts.push(newAddress);    
 
+    const channel = await amqpInstance.createChannel();
     await Promise.all([
       (async () => {
-        const channel = await amqpInstance.createChannel();
+ 
         const info = {address: newAddress};
         await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
     
@@ -90,7 +91,6 @@ describe('core/rest', function () { //todo add integration tests for query, push
         expect(account.balance.confirmed.toNumber()).to.be.equal(0);
       })(),
       (async () => {
-        const channel = await amqpInstance.createChannel();
         await connectToQueue(channel, `${config.rabbit.serviceName}.account.created`);
         await consumeMessages(1, channel, (message) => {
           const content = JSON.parse(message.content);
@@ -135,12 +135,14 @@ describe('core/rest', function () { //todo add integration tests for query, push
   });
 
   it('address/remove from rabbit mq', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length-1)[0];    
+    const removeAddress = _.pullAt(accounts, accounts.length-1)[0];
+    const acc = await saveAccountForAddress(removeAddress);   
 
+    const channel = await amqpInstance.createChannel();
     await Promise.all([
       (async () => {
-        const channel = await amqpInstance.createChannel();
         const info = {address: removeAddress};
+        await Promise.delay(6000);
         await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
     
         await Promise.delay(6000);
@@ -150,7 +152,6 @@ describe('core/rest', function () { //todo add integration tests for query, push
         expect(account.isActive).to.be.false;
       })(),
       (async () => {
-        const channel = await amqpInstance.createChannel();
         await connectToQueue(channel, `${config.rabbit.serviceName}.account.deleted`);
         return await consumeMessages(1, channel, (message) => {
           const content = JSON.parse(message.content);
@@ -159,10 +160,10 @@ describe('core/rest', function () { //todo add integration tests for query, push
         });
       })()
     ]);
-  });
+   });
 
 
-  it('address/balance by rest', async () => {
+ it('address/balance by rest', async () => {
     const address = accounts[0];
 
     await new Promise((res, rej) => {
@@ -171,7 +172,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         method: 'GET',
       }, async (err, resp) => {
         if (err || resp.statusCode !== 200) 
-          return rej(err || resp);
+          return rej(err);
 
         const body = JSON.parse(resp.body);
         expect(body.balance.confirmed.value).to.be.not.undefined;
@@ -186,9 +187,9 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
   it('GET tx/:addr/history for some query params and one right transaction [0 => 1]', async () => {
     const txs = [{
-      'recipient' : accounts[1],
       'type' : '257',
       'signer' : 'fa97f4fd052e40937180f72987189df429cc1f79996d439787cd13b76ff46caf',
+      'recipient' : accounts[1],
       'sender' : accounts[0],
       'hash' : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
       'mosaics' : [],
@@ -209,6 +210,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     exampleTransactionHash = txs[0].hash;
     await new txModel(txs[0]).save();
     await new txModel(txs[1]).save();
+    console.log(accounts[1], accounts[0]);
 
     const query = 'limit=1';
 
@@ -218,7 +220,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         method: 'GET',
       }, async (err, resp) => {
         if (err || resp.statusCode !== 200) 
-          return rej(err || resp);
+          return rej(err);
 
         try {
           expect(resp.body).to.not.be.empty;
@@ -234,7 +236,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
           );
           res();            
         } catch (e) {
-          rej(e || resp);
+          rej(e);
         }
       });
     });
@@ -252,7 +254,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         method: 'GET',
       }, async (err, resp) => {
         if (err || resp.statusCode !== 200) 
-          return rej(err || resp);
+          return rej(err);
 
         const body = JSON.parse(resp.body);
         expect(body).to.be.empty;
@@ -268,19 +270,19 @@ describe('core/rest', function () { //todo add integration tests for query, push
         method: 'GET',
       }, (err, resp) => {
         if (err || resp.statusCode !== 200) 
-          return rej(err || resp);
+          return rej(err);
 
         const respTx = JSON.parse(resp.body);
         console.log(respTx);
         expect(respTx.recipient).to.equal(accounts[1]);
         expect(respTx.sender).to.equal(accounts[0]);
         expect(respTx).to.contain.all.keys([
-          'sender', 'recipient', 'hash', 'blockNumber', 'amount', 'timeStamp'
+          'hash', 'blockNumber', 'amount', 'timeStamp'
         ]);
         res();
       });
     });
-  });
+  }); 
 
 
 });
