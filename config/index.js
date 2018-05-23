@@ -1,3 +1,8 @@
+/** 
+* Copyright 2017–2018, LaborX PTY
+* Licensed under the AGPL Version 3 license.
+* @author Kirill Sergeev <cloudkserg11@gmail.com>
+*/
 require('dotenv').config();
 const path = require('path'),
   nem = require('nem-sdk').default,
@@ -35,7 +40,7 @@ let config = {
     data: {
       uri: process.env.MONGO_DATA_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
       collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
-      useData: parseInt(process.env.USE_MONGO_DATA) || 0
+      useData: parseInt(process.env.USE_MONGO_DATA) || 1
     }
   },
   nis: {

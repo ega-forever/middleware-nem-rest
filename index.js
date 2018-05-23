@@ -1,3 +1,8 @@
+/** 
+* Copyright 2017–2018, LaborX PTY
+* Licensed under the AGPL Version 3 license.
+* @author Kirill Sergeev <cloudkserg11@gmail.com>
+*/
 const config = require('./config'),
   mongoose = require('mongoose'),
   bunyan = require('bunyan'),
@@ -17,7 +22,7 @@ const config = require('./config'),
 mongoose.Promise = Promise;
 mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
 
-if (config.mongo.data.useData)
+if (config.mongo.data.useData) 
   mongoose.data = mongoose.createConnection(config.mongo.data.uri);
 
 _.chain([mongoose.accounts, mongoose.data])

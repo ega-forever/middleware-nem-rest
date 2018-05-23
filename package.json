@@ -26,7 +26,11 @@
     "lint": "node ./node_modules/eslint/bin/eslint.js -c .eslintrc.js --ext .js --fix --ignore-path .eslintignore .",
     "test": "node ./node_modules/mocha/bin/mocha -t 90000 tests/index.js"
   },
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "author": "chronobank",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/ChronoBank/middleware-nem-balance-processor/issues"
+  },
+  "homepage": "https://github.com/ChronoBank/middleware-nem-balance-processor#readme",
+  "description": "Middleware NEM rest"
 }
