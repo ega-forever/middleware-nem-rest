@@ -5,8 +5,6 @@
 */
 require('dotenv').config();
 const path = require('path'),
-  nem = require('nem-sdk').default,
-  URL = require('url').URL,
   _ = require('lodash'),
   mongoose = require('mongoose');
 
@@ -108,7 +106,7 @@ let config = {
         network: parseInt(process.env.NETWORK) || -104,
         networkName: process.env.NETWORK_NAME || 'testnet',
         providers: createConfigProviders(process.env.PROVIDERS || getDefault())
-      },
+      }
     }
   }
 };
