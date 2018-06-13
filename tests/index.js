@@ -108,17 +108,18 @@ describe('core/rest', function () { //todo add integration tests for query, push
         expect(account.balance.confirmed.toNumber()).to.be.equal(0);
       })(),
       (async () => {
-        const channel = await amqpInstance.createChannel();
-        await channel.assertExchange('events', 'topic', {durable: false});
-        const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test_created`);
-        await channel.bindQueue(`${config.rabbit.serviceName}_test_created`, 'events', 
-          `${config.rabbit.serviceName}.account.created`
-        );
-        return await new Promise(res => channel.consume(`${config.rabbit.serviceName}_test_created`, async (message) => {
-          const content = JSON.parse(message.content);
-          if (content.address == newAddress)
-            res();
-        }, {noAck: true}));
+        // const channel = await amqpInstance.createChannel();
+        // await channel.assertExchange('events', 'topic', {durable: false});
+        // const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test_created`);
+        // await channel.bindQueue(`${config.rabbit.serviceName}_test_created`, 'events', 
+        //   `${config.rabbit.serviceName}.account.created`
+        // );
+        // return await new Promise(res => channel.consume(`${config.rabbit.serviceName}_test_created`, async (message) => {
+        //   const content = JSON.parse(message.content);
+          
+        //   if (content.address == newAddress)
+        //     res();
+        // }, {noAck: true}));
       })()
     ]);
   });
