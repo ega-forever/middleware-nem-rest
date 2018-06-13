@@ -5,13 +5,28 @@
 */
 require('dotenv').config();
 const path = require('path'),
-  nem = require('nem-sdk').default,
-  URL = require('url').URL,
   _ = require('lodash'),
-  mongoose = require('mongoose'),
-  nemUrl = new URL(process.env.NIS || 'http://localhost:7890'),
-  nemWebsocketUrl = new URL(process.env.WEBSOCKET_NIS || 'http://localhost:7880');
+  mongoose = require('mongoose');
 
+const getDefault = () => {
+  return (
+    (process.env.NIS || 'http://192.3.61.243:7890') + '@' +  
+    (process.env.WEBSOCKET_NIS || 'http://192.3.61.243:7778')
+  );
+};
+
+const createConfigProviders = (providers) => {
+  return _.chain(providers)
+    .split(',')
+    .map(provider => {
+      const data = provider.split('@');
+      return {
+        http: data[0].trim(),
+        ws: data[1].trim()
+      };
+    })
+    .value();
+};
 /**
  * @factory config
  * @description base app's configuration
@@ -43,9 +58,15 @@ let config = {
       useData: parseInt(process.env.USE_MONGO_DATA) || 1
     }
   },
-  nis: {
-    server: process.env.NIS || 'http://localhost:7890',
+  // nis: {
+  //   server: process.env.NIS || 'http://localhost:7890',
+  //   network: parseInt(process.env.NETWORK) || -104,
+  //   providers: createConfigProviders()
+  // },
+  node: {
     network: parseInt(process.env.NETWORK) || -104,
+    networkName: process.env.NETWORK_NAME || 'testnet',
+    providers: createConfigProviders(process.env.PROVIDERS || getDefault())
   },
   rabbit: {
     url: process.env.RABBIT_URI || 'amqp://localhost:5672',
@@ -75,12 +96,17 @@ let config = {
           serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
         }
       },
-      nem: {
-        endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
-        websocketEndpoint: nem.model.objects.create('endpoint')(`${nemWebsocketUrl.protocol}//${nemWebsocketUrl.hostname}`, nemWebsocketUrl.port),
-        network: process.env.NETWORK || -104,
-        lib: nem
-      },
+      // nem: {
+      //   endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
+      //   websocketEndpoint: nem.model.objects.create('endpoint')(`${nemWebsocketUrl.protocol}//${nemWebsocketUrl.hostname}`, nemWebsocketUrl.port),
+      //   network: process.env.NETWORK || -104,
+      //   lib: nem
+      // },
+      node: {
+        network: parseInt(process.env.NETWORK) || -104,
+        networkName: process.env.NETWORK_NAME || 'testnet',
+        providers: createConfigProviders(process.env.PROVIDERS || getDefault())
+      }
     }
   }
 };
