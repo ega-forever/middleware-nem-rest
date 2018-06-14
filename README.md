@@ -29,6 +29,62 @@ So, you don't need to write any code - you can create your own flow with UI tool
 `
 
 
+The available routes are listed below:
+
+| route | method | params | description |
+| ------ | ------ | ------ | ------ |
+| /addr   | POST | ``` {address: <string>, erc20tokens: [<string>], nem: [<string>]} ``` | register new address on middleware. erc20tokens - is an array of erc20Tokens, which balance changes this address will listen to (optional), nem - is nem's address (optional).
+| /addr   | DELETE | ``` {address: <string>} ``` | mark an address as inactive and stop perform any actions for this address.
+| /addr/{address}/balance   | GET |  | retrieve balance of the registered address
+| /tx   | POST | ``` {tx: <string>} ``` | broadcast raw transaction
+| /tx/{hash}   | GET | | return tx by its hash
+| /tx/{address}/history  | GET |  | retrieve transactions for the regsitered address [may set limit and skip parameters].
+
+#### Output of endpoints
+
+/addr/{address}/balance:
+
+```
+{
+"balance": {
+  "confirmed": {
+    "value":"110818180900","amount":"110818.180900"
+   },
+   "unconfirmed":{
+     "value":"110818180900","amount":"110818.180900"
+   },
+   "vested":{
+     "value":"110241162911","amount":"110241.162911"
+   }
+ },
+ "mosaics":{
+   "nem:xem":{
+     "confirmed":{
+       "amount":11081818090,"value":110818180900
+     },
+     "unconfirmed":{
+       "amount":11081818090,"value":110818180900
+     }
+   },
+   "prx:xpx":{
+     "confirmed":{
+       "amount":999798.967,"value":9997989670
+      },
+      "unconfirmed":{
+        "amount":999798.967,"value":9997989670
+      }
+   }
+ }
+}
+````
+
+#### REST guery language
+
+Every collection could be fetched with an additional query. The api use [query-to-mongo](https://www.npmjs.com/package/query-to-mongo) plugin as a backbone layer between GET request queries and mongo's. For instance, if we want to fetch all recods from collection 'issue', where issueNumber < 20, then we will make a call like that:
+```
+curl http://localhost:8080/events/issue?issueNumber<20
+```
+
 
 ##### сonfigure your .env
 
