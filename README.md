@@ -16,17 +16,6 @@ So, you don't need to write any code - you can create your own flow with UI tool
 /admin
 ````
 
-
-#### Predefined Routes with node-red flows
-
-
-The available routes are listed below:
-
-| route | mnemods | params | description |
-| ------ | ------ | ------ | ------ |
-
-
-
 #### Predefined Routes with node-red flows
 
 | description | route | method | params | output | 
