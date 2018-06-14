@@ -65,7 +65,7 @@ The options are presented below:
 | NODE_RED_MONGO_COLLECTION_PREFIX   | the collection prefix for node-red collections in mongo (If not specified, then the collections will be created without prefix)
 | REST_PORT   | rest plugin port
 | NETWORK   | network name (alias)- is used for connecting via node rest api (see block processor section)
-| NISE   | node rest api path address 
+| NIS   | node rest api path address 
 | NODERED_MONGO_URI   | the URI string for mongo collection for keeping node-red users and flows (optional, if omitted - then default MONGO_URI will be used)
 
 ### format balance for accounts
