@@ -61,6 +61,7 @@ let config = {
     },
     migrationsDir: path.join(__dirname, '../migrations'),
     migrationsInOneFile: true,
+    httpAdminRoot: process.env.HTTP_ADMIN || false,
     autoSyncMigrations: _.isString(process.env.NODERED_AUTO_SYNC_MIGRATIONS) ? parseInt(process.env.NODERED_AUTO_SYNC_MIGRATIONS) : true,
     functionGlobalContext: {
       connections: {

@@ -67,6 +67,7 @@ The options are presented below:
 | NETWORK   | network name (alias)- is used for connecting via node rest api (see block processor section)
 | NIS   | node rest api path address 
 | NODERED_MONGO_URI   | the URI string for mongo collection for keeping node-red users and flows (optional, if omitted - then default MONGO_URI will be used)
+| HTTP_ADMIN | admin path for nodered or false (if not publish as default)
 
 ### format balance for accounts
 ```
