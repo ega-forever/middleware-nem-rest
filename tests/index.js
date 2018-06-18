@@ -210,7 +210,6 @@ describe('core/rest', function () { //todo add integration tests for query, push
     exampleTransactionHash = txs[0].hash;
     await new txModel(txs[0]).save();
     await new txModel(txs[1]).save();
-    console.log(accounts[1], accounts[0]);
 
     const query = 'limit=1';
 
@@ -273,7 +272,6 @@ describe('core/rest', function () { //todo add integration tests for query, push
           return rej(err);
 
         const respTx = JSON.parse(resp.body);
-        console.log(respTx);
         expect(respTx.recipient).to.equal(accounts[1]);
         expect(respTx.sender).to.equal(accounts[0]);
         expect(respTx).to.contain.all.keys([
