@@ -81,6 +81,8 @@ let config = {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data'
     },
     migrationsDir: path.join(__dirname, '../migrations'),
+    migrationsInOneFile: true,
+    httpAdminRoot: process.env.HTTP_ADMIN || false,
     autoSyncMigrations: _.isString(process.env.NODERED_AUTO_SYNC_MIGRATIONS) ? parseInt(process.env.NODERED_AUTO_SYNC_MIGRATIONS) : true,
     functionGlobalContext: {
       connections: {
