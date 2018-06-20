@@ -16,8 +16,17 @@ So, you don't need to write any code - you can create your own flow with UI tool
 /admin
 ````
 
-
 #### Predefined Routes with node-red flows
+
+| description | route | method | params | output | 
+| --------- | ---- | - | ---- | --- | 
+| get transactions for the registered address (by default skip = 0, limit=100) | /tx/:addr/history   | GET | ``` {addr: <string>, limit: <Number>, skip: <Number> ```  |```[<Object of tx>]```  [view example](examples/history.md)  
+| get balance of the registered address| /addr/:addr/balance  | GET | ``` {addr: <string>} ``` | ``` {balance: <Number>, assets: {assetId: <Number>}} ```  [view example](examples/balance.md) 
+| get tx by its hash | /tx/{hash}   | GET | ``` {hash: <string>} ``` | ```<Object of tx>```  [view example](examples/tx.md) 
+| register new address on middleware. assets - is an array of assets, which balance changes this address will listen to (optional). | /addr   | POST | ``` {address: <string>} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ``` 
+| mark an address as inactive and stop perform any actions for this address. | /addr | DELETE | ``` {address: <string>} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ``` 
+| broadcast raw transaction |  /tx/send   | POST | ``` {data: <Object of tx>, signature: <String>} ``` [view example](examples/tx_send.md) |  [view example](examples/tx.md) 
+`
 
 
 The available routes are listed below:
@@ -112,8 +121,9 @@ The options are presented below:
 | NODE_RED_MONGO_COLLECTION_PREFIX   | the collection prefix for node-red collections in mongo (If not specified, then the collections will be created without prefix)
 | REST_PORT   | rest plugin port
 | NETWORK   | network name (alias)- is used for connecting via node rest api (see block processor section)
-| NISE   | node rest api path address 
+| NIS   | node rest api path address 
 | NODERED_MONGO_URI   | the URI string for mongo collection for keeping node-red users and flows (optional, if omitted - then default MONGO_URI will be used)
+| HTTP_ADMIN | admin path for nodered or false (if not publish as default)
 
 ### format balance for accounts
 ```

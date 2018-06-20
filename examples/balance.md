@@ -1,0 +1,40 @@
+```json
+{
+  "balance":{
+    "confirmed":{
+      "value":"189400000",
+      "amount":"189.400000"
+    },
+    "unconfirmed":{
+      "value":"189400000",
+      "amount":"189.400000"
+    },
+    "vested":{
+      "value":"189399994",
+      "amount":"189.399994"
+    }
+  },
+  "mosaics":{
+    "nem:xem":{
+      "confirmed":{
+        "amount":18940000,
+        "value":189400000
+      },
+      "unconfirmed":{
+        "amount":18940000,
+        "value":189400000
+      }
+    },
+    "vlt:rogero":{
+      "confirmed":{
+        "amount":10000000,
+        "value":100000000000
+      },
+      "unconfirmed":{
+        "amount":10000000,
+        "value":100000000000
+      }
+    }
+  }
+}
+```
