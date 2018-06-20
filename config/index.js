@@ -1,16 +1,18 @@
-/** 
-* Copyright 2017–2018, LaborX PTY
-* Licensed under the AGPL Version 3 license.
-* @author Kirill Sergeev <cloudkserg11@gmail.com>
-*/
+/**
+ * Copyright 2017–2018, LaborX PTY
+ * Licensed under the AGPL Version 3 license.
+ * @author Kirill Sergeev <cloudkserg11@gmail.com>
+ */
 require('dotenv').config();
 const path = require('path'),
   _ = require('lodash'),
+  URL = require('url').URL,
+  nem = require('nem-sdk').default,
   mongoose = require('mongoose');
 
 const getDefault = () => {
   return (
-    (process.env.NIS || 'http://192.3.61.243:7890') + '@' +  
+    (process.env.NIS || 'http://192.3.61.243:7890') + '@' +
     (process.env.WEBSOCKET_NIS || 'http://192.3.61.243:7778')
   );
 };
@@ -46,6 +48,11 @@ const createConfigProviders = (providers) => {
  *    }}
  */
 
+const providers = createConfigProviders(process.env.PROVIDERS || getDefault()),
+  nemUrl = new URL(providers[0].http),
+  nemWebsocketUrl = new URL(providers[0].ws);
+
+
 let config = {
   mongo: {
     accounts: {
@@ -58,11 +65,6 @@ let config = {
       useData: parseInt(process.env.USE_MONGO_DATA) || 1
     }
   },
-  // nis: {
-  //   server: process.env.NIS || 'http://localhost:7890',
-  //   network: parseInt(process.env.NETWORK) || -104,
-  //   providers: createConfigProviders()
-  // },
   node: {
     network: parseInt(process.env.NETWORK) || -104,
     networkName: process.env.NETWORK_NAME || 'testnet',
@@ -99,16 +101,15 @@ let config = {
           serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
         }
       },
-      // nem: {
-      //   endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
-      //   websocketEndpoint: nem.model.objects.create('endpoint')(`${nemWebsocketUrl.protocol}//${nemWebsocketUrl.hostname}`, nemWebsocketUrl.port),
-      //   network: process.env.NETWORK || -104,
-      //   lib: nem
-      // },
+      nem: {
+        endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
+        websocketEndpoint: nem.model.objects.create('endpoint')(`${nemWebsocketUrl.protocol}//${nemWebsocketUrl.hostname}`, nemWebsocketUrl.port),
+        lib: nem
+      },
       node: {
         network: parseInt(process.env.NETWORK) || -104,
         networkName: process.env.NETWORK_NAME || 'testnet',
-        providers: createConfigProviders(process.env.PROVIDERS || getDefault())
+        providers: providers
       }
     }
   }
