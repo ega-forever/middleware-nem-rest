@@ -209,29 +209,29 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
   it('GET tx/:addr/history for some query params and one right transaction [0 => 1]', async () => {
     const txs = [{
-      'type' : '257',
-      'signer' : 'fa97f4fd052e40937180f72987189df429cc1f79996d439787cd13b76ff46caf',
-      'recipient' : accounts[1],
-      'sender' : accounts[0],
-      'hash' : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
-      'mosaics' : [],
+      _id : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
+      type : '257',
+      signer : 'fa97f4fd052e40937180f72987189df429cc1f79996d439787cd13b76ff46caf',
+      recipient : accounts[1],
+      sender : accounts[0],
+      mosaics : [],
       amount: 200,
-      timeStamp: Date.now(),
-      'blockNumber' : 1425994
+      timestamp: Date.now(),
+      blockNumber : 1425994
     }, {
-      'recipient' : 'TDFSDFSFSDFSDFSDFSDFSDFSDFSDFSDFS',
-      'type' : '257',
-      timeStamp: Date.now(),
-      'signer' : 'fa97f4fd052e40937180f72987189df429cc1f79996d439787cd13b76ff46caf',
-      'sender' : 'FDGDGDFGDFGDFGDFGDFGDFGDFGDFGD',
-      'hash' : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
-      'mosaics' : [],
+      _id : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
+      recipient : 'TDFSDFSFSDFSDFSDFSDFSDFSDFSDFSDFS',
+      type : '257',
+      timestamp: Date.now(),
+      signer : 'fa97f4fd052e40937180f72987189df429cc1f79996d439787cd13b76ff46caf',
+      sender : 'FDGDGDFGDFGDFGDFGDFGDFGDFGDFGD',
+      mosaics : [],
       amount: 100,
-      'blockNumber' : 1425994
+      blockNumber : 1425994
     }];
-    exampleTransactionHash = txs[0].hash;
-    await new txModel(txs[0]).save();
-    await new txModel(txs[1]).save();
+    exampleTransactionHash = txs[0]._id;
+    await txModel.create(txs[0]);
+    await txModel.create(txs[1]);
 
     const query = 'limit=1';
 

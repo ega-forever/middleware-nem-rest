@@ -12,6 +12,7 @@
 const mongoose = require('mongoose'),
   config = require('../config');
 
+require('mongoose-long')(mongoose);
 
 const TX = new mongoose.Schema({
   _id: {type: String},
