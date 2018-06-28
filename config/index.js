@@ -1,17 +1,34 @@
-/** 
-* Copyright 2017–2018, LaborX PTY
-* Licensed under the AGPL Version 3 license.
-* @author Kirill Sergeev <cloudkserg11@gmail.com>
-*/
+/**
+ * Copyright 2017–2018, LaborX PTY
+ * Licensed under the AGPL Version 3 license.
+ * @author Kirill Sergeev <cloudkserg11@gmail.com>
+ */
 require('dotenv').config();
 const path = require('path'),
-  nem = require('nem-sdk').default,
-  URL = require('url').URL,
   _ = require('lodash'),
-  mongoose = require('mongoose'),
-  nemUrl = new URL(process.env.NIS || 'http://localhost:7890'),
-  nemWebsocketUrl = new URL(process.env.WEBSOCKET_NIS || 'http://localhost:7880');
+  URL = require('url').URL,
+  nem = require('nem-sdk').default,
+  mongoose = require('mongoose');
 
+const getDefault = () => {
+  return (
+    (process.env.NIS || 'http://192.3.61.243:7890') + '@' +
+    (process.env.WEBSOCKET_NIS || 'http://192.3.61.243:7778')
+  );
+};
+
+const createConfigProviders = (providers) => {
+  return _.chain(providers)
+    .split(',')
+    .map(provider => {
+      const data = provider.split('@');
+      return {
+        http: data[0].trim(),
+        ws: data[1].trim()
+      };
+    })
+    .value();
+};
 /**
  * @factory config
  * @description base app's configuration
@@ -31,6 +48,11 @@ const path = require('path'),
  *    }}
  */
 
+const providers = createConfigProviders(process.env.PROVIDERS || getDefault()),
+  nemUrl = new URL(providers[0].http),
+  nemWebsocketUrl = new URL(providers[0].ws);
+
+
 let config = {
   mongo: {
     accounts: {
@@ -43,9 +65,10 @@ let config = {
       useData: parseInt(process.env.USE_MONGO_DATA) || 1
     }
   },
-  nis: {
-    server: process.env.NIS || 'http://localhost:7890',
+  node: {
     network: parseInt(process.env.NETWORK) || -104,
+    networkName: process.env.NETWORK_NAME || 'testnet',
+    providers: createConfigProviders(process.env.PROVIDERS || getDefault())
   },
   rabbit: {
     url: process.env.RABBIT_URI || 'amqp://localhost:5672',
@@ -57,9 +80,12 @@ let config = {
   },
   nodered: {
     mongo: {
-      uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data'
+      uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
+      collectionPrefix: process.env.NODE_RED_MONGO_COLLECTION_PREFIX || '',
     },
     migrationsDir: path.join(__dirname, '../migrations'),
+    migrationsInOneFile: true,
+    httpAdminRoot: process.env.HTTP_ADMIN || false,
     autoSyncMigrations: _.isString(process.env.NODERED_AUTO_SYNC_MIGRATIONS) ? parseInt(process.env.NODERED_AUTO_SYNC_MIGRATIONS) : true,
     functionGlobalContext: {
       connections: {
@@ -78,9 +104,13 @@ let config = {
       nem: {
         endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
         websocketEndpoint: nem.model.objects.create('endpoint')(`${nemWebsocketUrl.protocol}//${nemWebsocketUrl.hostname}`, nemWebsocketUrl.port),
-        network: process.env.NETWORK || -104,
         lib: nem
       },
+      node: {
+        network: parseInt(process.env.NETWORK) || -104,
+        networkName: process.env.NETWORK_NAME || 'testnet',
+        providers: providers
+      }
     }
   }
 };

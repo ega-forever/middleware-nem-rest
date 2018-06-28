@@ -12,48 +12,33 @@
 const mongoose = require('mongoose'),
   config = require('../config');
 
+require('mongoose-long')(mongoose);
 
 const TX = new mongoose.Schema({
+  _id: {type: String},
   blockNumber: {type: Number, required: true, index: true, default: -1},
-  timeStamp: {type: Number, required: true, index: true, default: Date.now},  
-  
-  amount: {type: Number, index: true},
-  hash: {type: String, index: true, unique: true},
-
+  timestamp: {type: Number, required: true, index: true, default: Date.now},
+  amount: {type: mongoose.Schema.Types.Long, index: true},
   recipient: {type: String, index: true},
   sender: {type: String, index: true},
-  
-  nonce: {type: Number},
-  input: {type: String},
-  
-  version: {type: Number},
-  signer: {type: String},
-  signature: {type: String},
-  fee: {type: Number},
-  type: {type: String},
-  deadline: {type: Number},
-  newPart: {type: String},
-  rentalFee: {type: String},
-  message: {
-    payload: {type: String},
-    type: {type: Number}
-  },
+  fee: {type: mongoose.Schema.Types.Long},
+  messagePayload: {type: String},
+  messageType: {type: Number},
   mosaics: [{
-    quantity: {type: Number},
-    type: {type: String},      
+    quantity: {type: mongoose.Schema.Types.Long},
+    type: {type: String},
     supplyType: {type: String},
     delta: {type: String},
-    fee: {type: String},
+    fee: {type: mongoose.Schema.Types.Long},
     deadline: {type: String},
     version: {type: Number},
-    signature: {type: String},
     timestamp: {type: Number},
     mosaicId: {
       namespaceId: {type: String},
       name: {type: String}
     }
   }]
-});
+}, {_id: false});
 
 
 module.exports = mongoose.data.model(`${config.mongo.data.collectionPrefix}TX`, TX);
