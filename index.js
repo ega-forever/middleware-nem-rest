@@ -33,6 +33,9 @@ _.chain([mongoose.accounts, mongoose.data])
     })
   ).value();
 
+config.nodered.functionGlobalContext.connections.primary = mongoose;
+
+
 const init = async () => {
 
   require('require-all')({

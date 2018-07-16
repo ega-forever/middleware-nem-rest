@@ -29,6 +29,9 @@ const createConfigProviders = (providers) => {
     })
     .value();
 };
+
+const accountPrefix = process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem';
+
 /**
  * @factory config
  * @description base app's configuration
@@ -93,7 +96,7 @@ let config = {
       },
       settings: {
         mongo: {
-          accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
+          accountPrefix,
           collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem'
         },
         rabbit: {
@@ -110,6 +113,11 @@ let config = {
         network: parseInt(process.env.NETWORK) || -104,
         networkName: process.env.NETWORK_NAME || 'testnet',
         providers: providers
+      },
+      laborx: {
+        authProvider: process.env.LABORX || 'http://localhost:3001',
+        profileModel: accountPrefix + 'Profile',
+        dbAlias: 'accounts'
       }
     }
   }
