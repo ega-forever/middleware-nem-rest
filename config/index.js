@@ -102,6 +102,11 @@ let config = {
         rabbit: {
           url: process.env.RABBIT_URI || 'amqp://localhost:5672',
           serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
+        },
+        laborx: {
+          authProvider: process.env.LABORX || 'http://localhost:3001',
+          profileModel: accountPrefix + 'Profile',
+          dbAlias: 'accounts'
         }
       },
       nem: {
@@ -114,11 +119,6 @@ let config = {
         networkName: process.env.NETWORK_NAME || 'testnet',
         providers: providers
       },
-      laborx: {
-        authProvider: process.env.LABORX || 'http://localhost:3001',
-        profileModel: accountPrefix + 'Profile',
-        dbAlias: 'accounts'
-      }
     }
   }
 };

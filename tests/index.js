@@ -22,11 +22,10 @@ mongoose.data = mongoose.createConnection(config.mongo.data.uri);
 const txModel = require('../models/txModel'),
   accountModel = require('../models/accountModel'),
   clearQueues = require('./helpers/clearQueues'),
-  connectToQueue = require('./helpers/connectToQueue'),
-  consumeMessages = require('./helpers/consumeMessages'),
+  profileModel = require('../models/profileModel'),
+  authRequest = require('./helpers/authRequest'),
   saveAccountForAddress = require('./helpers/saveAccountForAddress'),
   getAccountFromMongo = require('./helpers/getAccountFromMongo'),
-  request = require('request'),
   amqp = require('amqplib');
 
 let accounts, amqpInstance;
@@ -36,11 +35,15 @@ describe('core/rest', function () { //todo add integration tests for query, push
   before(async () => {
     await txModel.remove();
     await accountModel.remove();
+    await profileModel.remove();
     amqpInstance = await amqp.connect(config.rabbit.url);
 
     accounts = config.dev.accounts;
     await saveAccountForAddress(accounts[0]);
     await clearQueues(amqpInstance);
+
+    const channel = await amqpInstance.createChannel();
+    await channel.assertExchange('profile', 'fanout', {durable: false});
   });
 
   after(async () => {
@@ -51,77 +54,57 @@ describe('core/rest', function () { //todo add integration tests for query, push
     await clearQueues(amqpInstance);
   });
 
-  it('address/create from post request', async () => {
-    const newAddress = `${_.chain(new Array(40)).map(() => _.random(0, 9)).map().join('').value()}`;
-    accounts.push(newAddress);
+  it('address/create from rabbitmq (not nrm address) and check that all right', async () => {
 
+    const newAddress = accounts[1];
+    const channel = await amqpInstance.createChannel();
+    const info = {'waves-address': newAddress, user: 1};
+    await channel.publish('profile', 'address.created', new Buffer(JSON.stringify(info)));
+
+    await Promise.delay(2000);
+    const acc = await accountModel.findOne({address: newAddress});
+    expect(acc).to.be.equal(null);
+  });
+
+
+  it('address/create from rabbitmq and check send event user.created in internal', async () => {
+
+    const newAddress = accounts[1];
     await new Promise.all([
-      (async() => {
-        await new Promise((res, rej) => {
-          request({
-            url: `http://localhost:${config.rest.port}/addr/`,
-            method: 'POST',
-            json: {address: newAddress}
-          }, async (err, resp) => {
-            if (err || resp.statusCode !== 200) 
-              return rej(err || resp);
-            const account = await getAccountFromMongo(newAddress);
-            expect(account).not.to.be.null;
-            expect(account.isActive).to.be.true;
-            res();
-          });
-        });
+      (async () => {
+        const channel = await amqpInstance.createChannel();
+        const info = {'nem-address': newAddress, user: 1};
+        await channel.publish('profile', 'address.created', new Buffer(JSON.stringify(info)));
       })(),
       (async () => {
         const channel = await amqpInstance.createChannel();
         await channel.assertExchange('internal', 'topic', {durable: false});
-        const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test.user`);
-        await channel.bindQueue(`${config.rabbit.serviceName}_test.user`, 'internal', 
-          `${config.rabbit.serviceName}_user.created`
-        );
-        return await new Promise(res => channel.consume(`${config.rabbit.serviceName}_test.user`, async (message) => {
+        const serviceName = config.nodered.functionGlobalContext.settings.rabbit.serviceName;
+        await channel.assertQueue(`${serviceName}_test.user`);
+        await channel.bindQueue(`${serviceName}_test.user`, 'internal', `${serviceName}_user.created`);
+        channel.consume(`${serviceName}_test.user`, async (message) => {
           const content = JSON.parse(message.content);
-          if (content.address == newAddress)
-            res();
-        }, {noAck: true}));
+          expect(content.address).to.be.equal(newAddress);
+        }, {noAck: true});
+    
+        const acc = await accountModel.findOne({address: newAddress});
+        expect(acc.address).to.be.equal(newAddress);
       })()
     ]);
 
   });
 
-  it('address/create from rabbit mq', async () => {
-    const newAddress = `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-    accounts.push(newAddress);    
+  it('address/delete from rabbitmq', async () => {
 
+    const newAddress = accounts[1];
     const channel = await amqpInstance.createChannel();
-    await Promise.all([
-      (async () => {
- 
-        const info = {address: newAddress};
-        await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
-    
-        await Promise.delay(8000);
-    
-        const account = await getAccountFromMongo(newAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.true;
-        expect(account.balance.confirmed.toNumber()).to.be.equal(0);
-      })(),
-      (async () => {
-        // const channel = await amqpInstance.createChannel();
-        // await channel.assertExchange('events', 'topic', {durable: false});
-        // const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test_created`);
-        // await channel.bindQueue(`${config.rabbit.serviceName}_test_created`, 'events', 
-        //   `${config.rabbit.serviceName}.account.created`
-        // );
-        // return await new Promise(res => channel.consume(`${config.rabbit.serviceName}_test_created`, async (message) => {
-        //   const content = JSON.parse(message.content);
-          
-        //   if (content.address == newAddress)
-        //     res();
-        // }, {noAck: true}));
-      })()
-    ]);
+    const info = {'nem-address': newAddress, user: 1};
+    await channel.publish('profile', 'address.deleted', new Buffer(JSON.stringify(info)));
+
+    await Promise.delay(2000);
+
+    const acc = await accountModel.findOne({address: newAddress});
+    expect(acc.isActive).to.be.equal(false);
   });
 
   it('address/update balance address by amqp', async () => {
@@ -136,60 +119,12 @@ describe('core/rest', function () { //todo add integration tests for query, push
     expect(account.balance.confirmed.toNumber()).to.be.not.undefined;
   });
 
-  it('address/remove by rest', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length-1)[0];
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/`,
-        method: 'DELETE',
-        json: {address: removeAddress}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200)
-          return rej(err || resp);
-        
-        const account = await getAccountFromMongo(removeAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.false;
-        res();
-      });
-    });
-  });
-
-  it('address/remove from rabbit mq', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length-1)[0];
-    const acc = await saveAccountForAddress(removeAddress);   
-
-    const channel = await amqpInstance.createChannel();
-    await Promise.all([
-      (async () => {
-        const info = {address: removeAddress};
-        await Promise.delay(6000);
-        await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
-    
-        await Promise.delay(6000);
-    
-        const account = await getAccountFromMongo(removeAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.false;
-      })(),
-      (async () => {
-        await connectToQueue(channel, `${config.rabbit.serviceName}.account.deleted`);
-        return await consumeMessages(1, channel, (message) => {
-          const content = JSON.parse(message.content);
-          expect(content.address).to.be.equal(removeAddress);
-          return true;
-        });
-      })()
-    ]);
-   });
-
 
  it('address/balance by rest', async () => {
     const address = accounts[0];
 
     await new Promise((res, rej) => {
-      request({
+      authRequest({
         url: `http://localhost:${config.rest.port}/addr/${address}/balance`,
         method: 'GET',
       }, async (err, resp) => {
@@ -236,7 +171,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     const query = 'limit=1';
 
     await new Promise((res, rej) => {
-      request({
+      authRequest({
         url: `http://localhost:${config.rest.port}/tx/${accounts[0]}/history?${query}`,
         method: 'GET',
       }, async (err, resp) => {
@@ -270,7 +205,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
 
     await new Promise((res, rej) => {
-      request({
+      authRequest({
         url: `http://localhost:${config.rest.port}/tx/${address}/history`,
         method: 'GET',
       }, async (err, resp) => {
@@ -286,7 +221,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
   it('GET tx/:hash for transaction [0 => 1]', async () => {
     await new Promise((res, rej) => {
-      request({
+      authRequest({
         url: `http://localhost:${config.rest.port}/tx/${exampleTransactionHash}`,
         method: 'GET',
       }, (err, resp) => {
