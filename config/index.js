@@ -104,7 +104,7 @@ let config = {
           serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
         },
         laborx: {
-          authProvider: process.env.LABORX || 'http://localhost:3001',
+          authProvider: process.env.LABORX || 'http://localhost:3001/api/v1/security',
           profileModel: accountPrefix + 'Profile',
           dbAlias: 'accounts'
         }
