@@ -54,6 +54,28 @@ describe('core/rest', function () { //todo add integration tests for query, push
     await clearQueues(amqpInstance);
   });
 
+
+  it('address/create from post request', async () => {
+    const newAddress = `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
+
+    await new Promise((res, rej) => {
+      authRequest({
+        url: `http://localhost:${config.rest.port}/addr/`,
+        method: 'POST',
+        json: {address: newAddress}
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
+        await Promise.delay(2000);
+        const account = await accountModel.findOne({address: newAddress});
+        expect(account).not.to.be.null;
+        expect(account.isActive).to.be.true;
+        res();
+      });
+    });
+  });
+
+
   it('address/create from rabbitmq (not nrm address) and check that all right', async () => {
 
     const newAddress = accounts[1];
