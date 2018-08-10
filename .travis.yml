@@ -24,17 +24,6 @@ before_script:
     - echo WEBSOCKET_NIS=http://192.3.61.243:7778 >> .env
     - echo USE_MONGO_DATA=1 >> .env
 
-    - |
-      if [ "$TRAVIS_BRANCH" == "master" ]; then
-        cd $TRAVIS_BUILD_DIR/ && git clone https://github.com/chronobank/middleware-nem-blockprocessor 
-      else
-        cd $TRAVIS_BUILD_DIR/ && git clone -b develop https://github.com/chronobank/middleware-nem-blockprocessor 
-      fi;
-    - cd $TRAVIS_BUILD_DIR/middleware-nem-blockprocessor && npm install
-    - sleep 30 && cd $TRAVIS_BUILD_DIR/middleware-nem-blockprocessor && pm2 start index.js
-    - cd $TRAVIS_BUILD_DIR && pm2 start index.js
-
-
 script:
   - sleep 30 && npm test -- --coverage
 
