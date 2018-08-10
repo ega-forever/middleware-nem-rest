@@ -67,4 +67,4 @@ Account.pre('update', function (next) {
   next();
 });
 
-module.exports = mongoose.accounts.model(`${config.mongo.accounts.collectionPrefix}Account`, Account);
+module.exports = () => mongoose.accounts.model(`${config.mongo.accounts.collectionPrefix}Account`, Account);
