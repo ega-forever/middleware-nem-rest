@@ -3,7 +3,7 @@ dist: trusty
 os: linux
 group: stable
 language: node_js
-node_js: 7.6.0
+node_js: 8.11.3
 
 services:
   - mongodb
@@ -15,7 +15,6 @@ before_install:
   - sudo apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev -y
 
 install:
-  - sudo rabbitmq-plugins enable rabbitmq_web_stomp
   - npm install
   - npm install -g pm2
 
