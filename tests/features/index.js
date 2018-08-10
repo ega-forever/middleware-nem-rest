@@ -17,7 +17,7 @@ module.exports = (ctx) => {
     await Promise.delay(10000);
   });
 
-  //describe('tx', () => txTests(ctx));
+  describe('tx', () => txTests(ctx));
   describe('address', () => addressTests(ctx));
 
   after('kill environment', async () => {
