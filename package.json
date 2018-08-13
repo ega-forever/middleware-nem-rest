@@ -29,8 +29,8 @@
   "author": "chronobank",
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/ChronoBank/middleware-nem-balance-processor/issues"
+    "url": "https://github.com/ChronoBank/middleware-nem-rest/issues"
   },
-  "homepage": "https://github.com/ChronoBank/middleware-nem-balance-processor#readme",
+  "homepage": "https://github.com/ChronoBank/middleware-nem-rest#readme",
   "description": "Middleware NEM rest"
 }
