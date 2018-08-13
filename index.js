@@ -6,6 +6,7 @@
 const config = require('./config'),
   mongoose = require('mongoose'),
   bunyan = require('bunyan'),
+  Promise = require('bluebird'),
   log = bunyan.createLogger({name: 'core.rest'}),
   path = require('path'),
   _ = require('lodash'),
