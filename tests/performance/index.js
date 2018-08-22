@@ -89,115 +89,115 @@ module.exports = (ctx) => {
     expect(Date.now() - start).to.be.below(TIMEOUT);
   });
 
-  // it('GET /addr/:addr/balance -  less than 1s', async () => {
-  //   const address = generateAddress('test7');
-  //   await models.accountModel.findOneAndUpdate({address}, {
-  //     balance: {
-  //       confirmed: 300*1000000,
-  //       unconfirmed: 500*1000000,
-  //       vested: 200*1000000
-  //     },
-  //     mosaics: {
-  //       abba: {
-  //         confirmed: 300*10,
-  //         unconfirmed: 500*10,
-  //         decimals: 2
-  //       },
-  //       bart: {
-  //         confirmed: 300,
-  //         unconfirmed: 500,
-  //         decimals: 1
-  //       }
-  //     }
-  //   });
+  it('GET /addr/:addr/balance -  less than 1s', async () => {
+    const address = generateAddress('test7');
+    await models.accountModel.findOneAndUpdate({address}, {
+      balance: {
+        confirmed: 300*1000000,
+        unconfirmed: 500*1000000,
+        vested: 200*1000000
+      },
+      mosaics: {
+        abba: {
+          confirmed: 300*10,
+          unconfirmed: 500*10,
+          decimals: 2
+        },
+        bart: {
+          confirmed: 300,
+          unconfirmed: 500,
+          decimals: 1
+        }
+      }
+    });
 
-  //   const start = Date.now();
-  //   await request(`${url}/addr/${address}/balance`, {
-  //     method: 'GET',
-  //     headers: getAuthHeaders(),
-  //     json: true
-  //   });
-  //   expect(Date.now() - start).to.be.below(TIMEOUT);
-  // });
+    const start = Date.now();
+    await request(`${url}/addr/${address}/balance`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+      json: true
+    });
+    expect(Date.now() - start).to.be.below(TIMEOUT);
+  });
 
-  // it('POST /addr - less than 1s', async () => {
-  //   const address = generateAddress('test');
-  //   ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
-  //   await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.create`);
+  it('POST /addr - less than 1s', async () => {
+    const address = generateAddress('test');
+    ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
+    await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.create`);
 
 
-  //   const start = Date.now();
+    const start = Date.now();
 
-  //   await Promise.all([
-  //     (async () => {
-  //       await request(url + '/addr', {
-  //         method: 'POST',
-  //         json: {address}
-  //       });
-  //     })(),
+    await Promise.all([
+      (async () => {
+        await request(url + '/addr', {
+          method: 'POST',
+          json: {address}
+        });
+      })(),
 
-  //     (async () => {
-  //       await new Promise(res => ctx.amqp.channel.consume('test_addr', msg => {
-  //         const content = JSON.parse(msg.content);
-  //         expect(content.address).to.equal(address);
-  //         ctx.amqp.channel.cancel(msg.fields.consumerTag);
-  //         res();
-  //       }));
-  //     })()
-  //   ]);
+      (async () => {
+        await new Promise(res => ctx.amqp.channel.consume('test_addr', msg => {
+          const content = JSON.parse(msg.content);
+          expect(content.address).to.equal(address);
+          ctx.amqp.channel.cancel(msg.fields.consumerTag);
+          res();
+        }));
+      })()
+    ]);
 
-  //   expect(Date.now() - start).to.be.below(TIMEOUT);
-  // });
+    expect(Date.now() - start).to.be.below(TIMEOUT);
+  });
 
-  // it('send message address.created from laborx - get events message account.created less than 1s', async () => {
-  //   const address = generateAddress('test4');
-  //   ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr4', {autoDelete: true, durable: false, noAck: true});
-  //   await ctx.amqp.channel.bindQueue('test_addr4', 'events', `${config.rabbit.serviceName}.account.created`);
+  it('send message address.created from laborx - get events message account.created less than 1s', async () => {
+    const address = generateAddress('test4');
+    ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr4', {autoDelete: true, durable: false, noAck: true});
+    await ctx.amqp.channel.bindQueue('test_addr4', 'events', `${config.rabbit.serviceName}.account.created`);
 
-  //   const start = Date.now();
-  //   await Promise.all([
-  //     (async () => {
-  //       const data = {'nem-address': address};
-  //       await ctx.amqp.channel.publish('profiles', 'address.created', new Buffer(JSON.stringify(data)));
-  //     })(),
+    const start = Date.now();
+    await Promise.all([
+      (async () => {
+        const data = {'nem-address': address};
+        await ctx.amqp.channel.publish('profiles', 'address.created', new Buffer(JSON.stringify(data)));
+      })(),
 
-  //     (async () => {
-  //       await new Promise(res => ctx.amqp.channel.consume('test_addr4',  msg => {
-  //         const content = JSON.parse(msg.content);
-  //         expect(content.address).to.equal(address);
-  //         ctx.amqp.channel.cancel(msg.fields.consumerTag);
-  //         res();
-  //       }));
-  //     })()
-  //   ]);
+      (async () => {
+        await new Promise(res => ctx.amqp.channel.consume('test_addr4',  msg => {
+          const content = JSON.parse(msg.content);
+          expect(content.address).to.equal(address);
+          ctx.amqp.channel.cancel(msg.fields.consumerTag);
+          res();
+        }));
+      })()
+    ]);
 
-  //   expect(Date.now() - start).to.be.below(TIMEOUT);
-  // });
+    expect(Date.now() - start).to.be.below(TIMEOUT);
+  });
 
-  // it('send message address.deleted from laborx - get events message account.deleted less than 1s', async () => {
-  //   const address = generateAddress('test4');
-  //   ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
-  //   await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.deleted`);
+  it('send message address.deleted from laborx - get events message account.deleted less than 1s', async () => {
+    const address = generateAddress('test4');
+    ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
+    await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.deleted`);
     
-  //   const start = Date.now();
-  //   await Promise.all([
-  //     (async () => {
-  //       const data = {'nem-address': address};
-  //       await ctx.amqp.channel.publish('profiles', 'address.deleted', new Buffer(JSON.stringify(data)));
-  //     })(),
+    const start = Date.now();
+    await Promise.all([
+      (async () => {
+        const data = {'nem-address': address};
+        await ctx.amqp.channel.publish('profiles', 'address.deleted', new Buffer(JSON.stringify(data)));
+      })(),
 
-  //     (async () => {
-  //       await new Promise(res => ctx.amqp.channel.consume('test_addr',  msg => {
-  //         const content = JSON.parse(msg.content);
-  //         expect(content.address).to.equal(address);
-  //         ctx.amqp.channel.cancel(msg.fields.consumerTag);
-  //         res();
-  //       }));
-  //     })()
-  //   ]);
+      (async () => {
+        await new Promise(res => ctx.amqp.channel.consume('test_addr',  msg => {
+          const content = JSON.parse(msg.content);
+          expect(content.address).to.equal(address);
+          ctx.amqp.channel.cancel(msg.fields.consumerTag);
+          res();
+        }));
+      })()
+    ]);
 
-  //   expect(Date.now() - start).to.be.below(TIMEOUT);
-  // });
+    expect(Date.now() - start).to.be.below(TIMEOUT);
+  });
 
 
 

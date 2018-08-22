@@ -48,4 +48,7 @@ const init = async () => {
 
 };
 
-module.exports = init();
+module.exports = init().catch((e) => {
+  log.error(e);
+  process.exit(1);
+});
