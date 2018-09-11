@@ -21,7 +21,7 @@ module.exports = (ctx) => {
 
 
   it('POST /addr - response with addr', async () => {
-    const address = generateAddress('test');
+    const address = generateAddress();
 
     const response = await request(`http://localhost:${config.rest.port}/addr`, {
       method: 'POST',
@@ -301,7 +301,9 @@ module.exports = (ctx) => {
 
     const response = await request(`http://localhost:${config.rest.port}/addr/${address}/balance`, {
       method: 'GET',
-      Authorization: `Bearer ${config.dev.laborx.token}`,
+      headers: {
+        Authorization: `Bearer ${config.dev.laborx.token}`,
+      },
       json: true
     });
     expect(response).to.deep.equal({
@@ -319,7 +321,7 @@ module.exports = (ctx) => {
   it('GET /addr/:addr/balance - and get response with balance and mosaics', async () => {
     const address = generateAddress('test7');
 
-    await models.accountModel.findOneAndUpdate({address}, {
+    await models.accountModel.update({address}, {
       balance: {
         confirmed: 300*1000000,
         unconfirmed: 500*1000000,
@@ -342,7 +344,9 @@ module.exports = (ctx) => {
 
     const response = await request(`http://localhost:${config.rest.port}/addr/${address}/balance`, {
       method: 'GET',
-      Authorization: `Bearer ${config.dev.laborx.token}`,
+      headers: {
+        Authorization: `Bearer ${config.dev.laborx.token}`,
+      },
       json: true
     });
     expect(response).to.deep.equal({
