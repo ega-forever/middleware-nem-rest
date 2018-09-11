@@ -93,6 +93,11 @@ let config = {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
       collectionPrefix: process.env.NODE_RED_MONGO_COLLECTION_PREFIX || '',
     },
+    logging: {
+      console: {
+        level: process.env.LOG_LEVEL || 'info'
+      }
+    },
     migrationsDir: path.join(__dirname, '../migrations'),
     useLocalStorage: false,
     migrationsInOneFile: true,
