@@ -10,30 +10,17 @@ const config = require('../config'),
   models = require('../../models'),
   killProcess = require('../helpers/killProcess'),
   expect = require('chai').expect,
-  url = config.dev.url,
-
+  generateAddress = require('../utils/address/generateAddress'),
   authTests = require('./auth'),
   addressTests = require('./address');
-
-
-
-const generateAddress  = (name) => name.concat('z'.repeat(40-name.length)).toUpperCase()
-const getAuthHeaders = () => { return {'Authorization': 'Bearer ' + config.dev.laborx.token}; }
 
 module.exports = (ctx) => {
 
   before (async () => {
-    ctx.amqp.channel = await ctx.amqp.instance.createChannel();
-    ctx.amqp.channel.prefetch(1);
-    
     ctx.restPid = spawn('node', ['index.js'], {env: process.env, stdio: 'ignore'});
     await Promise.delay(10000);
   });
 
-  after ('kill environment', async () => {
-    await ctx.amqp.channel.close();
-    await killProcess(ctx.restPid);
-  });
 
   describe('auth', () => authTests(ctx));
   describe('address', () => addressTests(ctx));
@@ -43,28 +30,37 @@ module.exports = (ctx) => {
     ctx.restPid = spawn('node', ['index.js'], {env: process.env, stdio: 'ignore'});
     await Promise.delay(10000);
 
+
     const hash = 'TESTHASH2';
-    const address = generateAddress('addr');
-    const tx = await models.txModel.findOneAndUpdate({'_id': hash}, {
-      recipient: address,
+    const toAddress = generateAddress();
+
+    await models.txModel.update({'_id': hash}, {
+      recipient: toAddress,
       timestamp: 1,
       blockNumber: 5
-    }, {upsert: true, new: true});
+    }, {upsert: true});
   
-    const response = await request(`${url}/tx/${hash}`, {
+    const response = await request(`http://localhost:${config.rest.port}/tx/${hash}`, {
       method: 'GET',
       json: true,
-      headers: getAuthHeaders()
+      headers: {
+        Authorization: `Bearer ${config.dev.laborx.token}`
+      }
     }).catch(e => e);
 
     expect(response).to.deep.equal({
-      'recipient':address,
+      'recipient': toAddress,
       'mosaics':[],
-      'blockNumber': tx.blockNumber,
+      'blockNumber': 5,
       'hash': hash,
-      'timeStamp': tx.timestamp
+      'timeStamp': 1
     });
   });
+
+  after ('kill environment', async () => {
+    await ctx.restPid.kill();
+  });
+
 
 
 };

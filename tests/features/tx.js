@@ -8,11 +8,8 @@ const models = require('../../models'),
   config = require('../config'),
   request = require('request-promise'),
   expect = require('chai').expect,
-  url = 'http://localhost:8081';
+  generateAddress = require('../utils/address/generateAddress');
 
-
-const generateAddress  = (name) => name.concat('z'.repeat(40-name.length)).toUpperCase()
-const getAuthHeaders = () => { return {'Authorization': 'Bearer ' + config.dev.laborx.token}; }
 
 module.exports = (ctx) => {
 
@@ -26,34 +23,38 @@ module.exports = (ctx) => {
   });
 
   it('GET /tx/:hash when no tx in db - get {}', async () => {
-    const response = await request(`${url}/tx/TXHASH`, {
+    const response = await request(`http://localhost:${config.rest.port}/tx/TXHASH`, {
       method: 'GET',
       json: true,
-      headers: getAuthHeaders()
+      headers: {
+        Authorization: `Bearer ${config.dev.laborx.token}`
+      }
     }).catch(e => e);
     expect(response).to.deep.equal({});
   });
 
   it('GET /tx/:hash with non exist hash - get {}', async () => {
     const hash = 'TESTHASH';
-    const address = generateAddress('addr');
+    const address = generateAddress();
     await models.txModel.findOneAndUpdate({'_id': hash}, {
       recipient: address,
       timestamp: 1,
       blockNumber: 5
     }, {upsert: true});
 
-    const response = await request(`${url}/tx/BART`, {
+    const response = await request(`http://localhost:${config.rest.port}/tx/BART`, {
       method: 'GET',
       json: true,
-      headers: getAuthHeaders()
+      headers: {
+        Authorization: `Bearer ${config.dev.laborx.token}`
+      }
     }).catch(e => e);
     expect(response).to.deep.equal({});
   });
 
   it('GET /tx/:hash with exist hash (in db two txs) - get right tx', async () => {
     const hash = 'TESTHASH2';
-    const address = generateAddress('addr');
+    const address = generateAddress();
     const tx = await models.txModel.findOneAndUpdate({'_id': hash}, {
       recipient: address,
       timestamp: 1,
@@ -66,10 +67,12 @@ module.exports = (ctx) => {
       blockNumber: 5
     }, {upsert: true});
 
-    const response = await request(`${url}/tx/${hash}`, {
+    const response = await request(`http://localhost:${config.rest.port}/tx/${hash}`, {
       method: 'GET',
       json: true,
-      headers: getAuthHeaders()
+      headers: {
+        Authorization: `Bearer ${config.dev.laborx.token}`
+      }
     }).catch(e => e);
 
     expect(response).to.deep.equal({
@@ -84,33 +87,37 @@ module.exports = (ctx) => {
 
 
   it('GET /tx/:addr/history when no tx in db - get []', async () => {
-    const address = generateAddress('addr');
-    const response = await request(`${url}/tx/${address}/history`, {
+    const address = generateAddress();
+    const response = await request(`http://localhost:${config.rest.port}/tx/${address}/history`, {
       method: 'GET',
       json: true,
-      headers: getAuthHeaders()
+      headers: {
+        Authorization: `Bearer ${config.dev.laborx.token}`
+      }
     }).catch(e => e);
     expect(response).to.deep.equal([]);
   });
 
   it('GET /tx/:addr/history with non exist address - get []', async () => {
-    const address = generateAddress('addr');
+    const address = generateAddress();
     await models.txModel.findOneAndUpdate({'_id': 'HASHES'}, {
-      recipient: generateAddress('addr2'),
+      recipient: generateAddress(),
       timestamp: 1,
       blockNumber: 5
     }, {upsert: true});
 
-    const response = await request(`${url}/tx/${address}/history`, {
+    const response = await request(`http://localhost:${config.rest.port}/tx/${address}/history`, {
       method: 'GET',
       json: true,
-      headers: getAuthHeaders()
+      headers: {
+        Authorization: `Bearer ${config.dev.laborx.token}`
+      }
     }).catch(e => e);
     expect(response).to.deep.equal([]);
   });
 
   it('GET /tx/:addr/history with exist address (in db two him txs and not him) - get right txs', async () => {
-    const address = generateAddress('addr');
+    const address = generateAddress();
     const txs = [];
     txs[0] = await models.txModel.findOneAndUpdate({'_id': 'TEST1'}, {
       recipient: address,
@@ -119,7 +126,7 @@ module.exports = (ctx) => {
     }, {upsert: true});
 
     await models.txModel.findOneAndUpdate({'_id': 'HASHES'}, {
-      recipient: generateAddress('addr2'),
+      recipient: generateAddress(),
       timestamp: 1,
       blockNumber: 5
     }, {upsert: true});
@@ -132,10 +139,12 @@ module.exports = (ctx) => {
 
 
 
-    const response = await request(`${url}/tx/${address}/history`, {
+    const response = await request(`http://localhost:${config.rest.port}/tx/${address}/history`, {
       method: 'GET',
       json: true,
-      headers: getAuthHeaders()
+      headers: {
+        Authorization: `Bearer ${config.dev.laborx.token}`
+      }
     }).catch(e => e);
     expect(response.length).to.equal(2);
     expect(response).to.deep.equal([
@@ -152,7 +161,7 @@ module.exports = (ctx) => {
         hash: 'TEST1',
         timeStamp: 1 
       }
-    ])
+    ]);
   });
 
 };

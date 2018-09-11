@@ -33,7 +33,6 @@ describe('core/nemRest', function () {
     ctx.amqp.channel = await ctx.amqp.instance.createChannel();
     await ctx.amqp.channel.assertExchange('events', 'topic', {durable: false});
     await ctx.amqp.channel.assertExchange('profiles', 'fanout', {durable: true});
-    await ctx.amqp.channel.close();
 
     ctx.laborxPid = spawn('node', ['tests/utils/laborxProxy.js'], {
       env: process.env, stdio: 'ignore'
@@ -41,12 +40,7 @@ describe('core/nemRest', function () {
     await Promise.delay(10000);
   });
 
-  after (async () => {
-    mongoose.disconnect();
-    await ctx.amqp.instance.close();
-    await ctx.laborxPid.kill();
-  });
-
+ 
 
 
   describe('performance', () => performanceTests(ctx));
@@ -54,5 +48,12 @@ describe('core/nemRest', function () {
   describe('fuzz', () => fuzzTests(ctx));
 
   describe('features', () => featuresTests(ctx));
+
+
+  after (async () => {
+    mongoose.disconnect();
+    await ctx.amqp.instance.close();
+    await ctx.laborxPid.kill();
+  });
 
 });

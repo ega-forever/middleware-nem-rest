@@ -10,13 +10,13 @@ services:
   - rabbitmq
 
 before_install:
+  - export LABORX_USE_AUTH=1
   - mongo data --eval 'db.dropDatabase();'
   - sudo apt-get update
   - sudo apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev -y
 
 install:
   - npm install
-  - npm install -g pm2
 
 before_script:
     - echo NIS=http://192.3.61.243:7890 > .env
@@ -24,11 +24,7 @@ before_script:
     - echo USE_MONGO_DATA=1 >> .env
 
 script:
-  - sleep 30 && npm test -- --coverage
-
-after_script:
-  - pm2 logs --nostream
-  - pm2 kill && pkill PM2
+  - npm test -- --coverage
 
 after_success:
   - FULL_GCR_KEY="-----BEGIN PRIVATE KEY-----\n"$GCR_KEY"\n-----END PRIVATE KEY-----\n"
