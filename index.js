@@ -9,6 +9,11 @@ const config = require('./config'),
   Promise = require('bluebird'),
   log = bunyan.createLogger({name: 'core.rest', level: config.nodered.logging.console.level}),
   path = require('path'),
+  
+  AmqpService = require('middleware-common-infrastructure/AmqpService'),
+  InfrastructureInfo = require('middleware-common-infrastructure/InfrastructureInfo'),
+  InfrastructureService = require('middleware-common-infrastructure/InfrastructureService'),
+  
   _ = require('lodash'),
   models = require('./models'),
   migrator = require('middleware_service.sdk').migrator,
@@ -26,6 +31,24 @@ mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri, {useMon
 mongoose.profile = mongoose.createConnection(config.mongo.profile.uri, {useMongoClient: true});
 mongoose.data = mongoose.createConnection(config.mongo.data.uri, {useMongoClient: true});
 
+const runInfrastucture = async function () {
+  const rabbit = new AmqpService(
+    config.infrastructureRabbit.url, 
+    config.infrastructureRabbit.exchange,
+    config.infrastructureRabbit.serviceName
+  );
+  const info = InfrastructureInfo(require('./package.json'));
+  const infrastructure = new InfrastructureService(info, rabbit, {checkInterval: 10000});
+  await infrastructure.start();
+  infrastructure.on(infrastructure.REQUIREMENT_ERROR, ({requirement, version}) => {
+    log.error(`Not found requirement with name ${requirement.name} version=${requirement.version}.` +
+        ` Last version of this middleware=${version}`);
+    process.exit(1);
+  });
+  await infrastructure.checkRequirements();
+  infrastructure.periodicallyCheck();
+};
+
 _.chain([mongoose.accounts, mongoose.data, mongoose.profile])
   .compact().forEach(connection =>
     connection.on('disconnected', function () {
@@ -36,7 +59,11 @@ _.chain([mongoose.accounts, mongoose.data, mongoose.profile])
 
 models.init();
 
+
 const init = async () => {
+
+  if (config.checkInfrastructure)
+    await runInfrastucture();
 
   if (config.nodered.autoSyncMigrations)
     await migrator.run(
