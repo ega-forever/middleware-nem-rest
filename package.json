@@ -9,7 +9,7 @@
     "dotenv": "^4.0.0",
     "lodash": "^4.17.4",
     "middleware_service.sdk": "github:chronobank/middleware-service-sdk",
-    "middleware_common_infrastructure": "^1.0.0",
+    "middleware_common_infrastructure": "^1.0.2",
     "mongoose": "^4.11.7",
     "mongoose-long": "^0.1.1",
     "nem-sdk": "^1.6.1",
