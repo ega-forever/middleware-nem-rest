@@ -10,9 +10,9 @@ const config = require('./config'),
   log = bunyan.createLogger({name: 'core.rest', level: config.nodered.logging.console.level}),
   path = require('path'),
   
-  AmqpService = require('middleware-common-infrastructure/AmqpService'),
-  InfrastructureInfo = require('middleware-common-infrastructure/InfrastructureInfo'),
-  InfrastructureService = require('middleware-common-infrastructure/InfrastructureService'),
+  AmqpService = require('middleware_common_infrastructure/AmqpService'),
+  InfrastructureInfo = require('middleware_common_infrastructure/InfrastructureInfo'),
+  InfrastructureService = require('middleware_common_infrastructure/InfrastructureService'),
   
   _ = require('lodash'),
   models = require('./models'),
@@ -31,22 +31,22 @@ mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri, {useMon
 mongoose.profile = mongoose.createConnection(config.mongo.profile.uri, {useMongoClient: true});
 mongoose.data = mongoose.createConnection(config.mongo.data.uri, {useMongoClient: true});
 
-const runInfrastucture = async function () {
+const runSystem = async function () {
   const rabbit = new AmqpService(
-    config.infrastructureRabbit.url, 
-    config.infrastructureRabbit.exchange,
-    config.infrastructureRabbit.serviceName
+    config.systemRabbit.url, 
+    config.systemRabbit.exchange,
+    config.systemRabbit.serviceName
   );
-  const info = InfrastructureInfo(require('./package.json'));
-  const infrastructure = new InfrastructureService(info, rabbit, {checkInterval: 10000});
-  await infrastructure.start();
-  infrastructure.on(infrastructure.REQUIREMENT_ERROR, ({requirement, version}) => {
+  const info = new InfrastructureInfo(require('./package.json'));
+  const system = new InfrastructureService(info, rabbit, {checkInterval: 10000});
+  await system.start();
+  system.on(system.REQUIREMENT_ERROR, ({requirement, version}) => {
     log.error(`Not found requirement with name ${requirement.name} version=${requirement.version}.` +
         ` Last version of this middleware=${version}`);
     process.exit(1);
   });
-  await infrastructure.checkRequirements();
-  infrastructure.periodicallyCheck();
+  await system.checkRequirements();
+  system.periodicallyCheck();
 };
 
 _.chain([mongoose.accounts, mongoose.data, mongoose.profile])
@@ -61,9 +61,8 @@ models.init();
 
 
 const init = async () => {
-
-  if (config.checkInfrastructure)
-    await runInfrastucture();
+  if (config.checkSystem)
+    await runSystem();
 
   if (config.nodered.autoSyncMigrations)
     await migrator.run(
