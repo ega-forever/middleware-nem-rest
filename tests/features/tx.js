@@ -100,12 +100,6 @@ module.exports = (ctx) => {
 
   it('GET /tx/:addr/history with non exist address - get []', async () => {
     const address = generateAddress();
-    await models.txModel.findOneAndUpdate({'_id': 'HASHES'}, {
-      recipient: generateAddress(),
-      timestamp: 1,
-      blockNumber: 5
-    }, {upsert: true});
-
     const response = await request(`http://localhost:${config.rest.port}/tx/${address}/history`, {
       method: 'GET',
       json: true,
