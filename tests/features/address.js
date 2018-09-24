@@ -23,7 +23,7 @@ module.exports = (ctx) => {
   it('POST /addr - response with addr', async () => {
     const address = generateAddress();
 
-    const response = await request(`http://localhost:${config.rest.port}/addr`, {
+    const response = await request(`${config.dev.url}/addr`, {
       method: 'POST',
       json: {address}
     });
@@ -37,7 +37,7 @@ module.exports = (ctx) => {
 
     await Promise.all([
       (async () => {
-        await request(`http://localhost:${config.rest.port}/addr`, {
+        await request(`${config.dev.url}/addr`, {
           method: 'POST',
           json: {address}
         });
@@ -61,7 +61,7 @@ module.exports = (ctx) => {
   it('POST /addr with exist addr - get response', async () => {
     const address = generateAddress('test');
 
-    const response = await request(`http://localhost:${config.rest.port}/addr`, {
+    const response = await request(`${config.dev.url}/addr`, {
       method: 'POST',
       json: {address}
     });
@@ -299,7 +299,7 @@ module.exports = (ctx) => {
   it('GET /addr/:addr/balance - and get response with balance', async () => {
     const address = generateAddress('test7');
 
-    const response = await request(`http://localhost:${config.rest.port}/addr/${address}/balance`, {
+    const response = await request(`${config.dev.url}/addr/${address}/balance`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${config.dev.laborx.token}`,
@@ -342,7 +342,7 @@ module.exports = (ctx) => {
     });
 
 
-    const response = await request(`http://localhost:${config.rest.port}/addr/${address}/balance`, {
+    const response = await request(`${config.dev.url}/addr/${address}/balance`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${config.dev.laborx.token}`,

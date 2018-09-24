@@ -8,7 +8,6 @@ const config = require('../config'),
   Promise = require('bluebird'),
   request = require('request-promise'),
   models = require('../../models'),
-  killProcess = require('../helpers/killProcess'),
   expect = require('chai').expect,
   generateAddress = require('../utils/address/generateAddress'),
   authTests = require('./auth'),
@@ -26,7 +25,8 @@ module.exports = (ctx) => {
   describe('address', () => addressTests(ctx));
 
   it('kill rest server and up already - work GET /tx/:hash', async () => {
-    await killProcess(ctx.restPid);
+    await ctx.restPid.kill();
+    await Promise.delay(2000);
     ctx.restPid = spawn('node', ['index.js'], {env: process.env, stdio: 'ignore'});
     await Promise.delay(10000);
 
@@ -40,13 +40,14 @@ module.exports = (ctx) => {
       blockNumber: 5
     }, {upsert: true});
   
-    const response = await request(`http://localhost:${config.rest.port}/tx/${hash}`, {
+    const response = await request(`${config.dev.url}/tx/${hash}`, {
       method: 'GET',
       json: true,
       headers: {
         Authorization: `Bearer ${config.dev.laborx.token}`
       }
     }).catch(e => e);
+    console.log(response);
 
     expect(response).to.deep.equal({
       'recipient': toAddress,

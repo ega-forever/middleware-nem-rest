@@ -41,7 +41,7 @@ module.exports = (ctx) => {
     }, {upsert: true});
 
     const start = Date.now();
-    await request(`http://localhost:${config.rest.port}/tx/${hash}`, {
+    await request(`${config.dev.url}/tx/${hash}`, {
       method: 'GET',
       json: true,
       headers: {
@@ -67,7 +67,7 @@ module.exports = (ctx) => {
     }, {upsert: true});
 
     const start  = Date.now();
-    await request(`http://localhost:${config.rest.port}/tx/${address}/history`, {
+    await request(`${config.dev.url}/tx/${address}/history`, {
       method: 'GET',
       json: true,
       headers: {
@@ -101,7 +101,7 @@ module.exports = (ctx) => {
     });
 
     const start = Date.now();
-    await request(`http://localhost:${config.rest.port}/addr/${address}/balance`, {
+    await request(`${config.dev.url}/addr/${address}/balance`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${config.dev.laborx.token}`
@@ -121,7 +121,7 @@ module.exports = (ctx) => {
 
     await Promise.all([
       (async () => {
-        await request(`http://localhost:${config.rest.port}/addr`, {
+        await request(`${config.dev.url}/addr`, {
           method: 'POST',
           json: {address}
         });

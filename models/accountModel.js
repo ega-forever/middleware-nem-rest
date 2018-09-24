@@ -12,7 +12,7 @@
 const mongoose = require('mongoose'),
   config = require('../config'),
   _ = require('lodash'),
-  messages = require('middleware_service.sdk').factories.messages.addressMessageFactory;
+  messages = require('middleware-common-components/factories/messages/addressMessageFactory');
 
 require('mongoose-long')(mongoose);
 

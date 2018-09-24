@@ -23,7 +23,7 @@ module.exports = (ctx) => {
   });
 
   it('GET /tx/:hash when no tx in db - get {}', async () => {
-    const response = await request(`http://localhost:${config.rest.port}/tx/TXHASH`, {
+    const response = await request(`${config.dev.url}/tx/TXHASH`, {
       method: 'GET',
       json: true,
       headers: {
@@ -42,7 +42,7 @@ module.exports = (ctx) => {
       blockNumber: 5
     }, {upsert: true});
 
-    const response = await request(`http://localhost:${config.rest.port}/tx/BART`, {
+    const response = await request(`${config.dev.url}/tx/BART`, {
       method: 'GET',
       json: true,
       headers: {
@@ -67,7 +67,7 @@ module.exports = (ctx) => {
       blockNumber: 5
     }, {upsert: true});
 
-    const response = await request(`http://localhost:${config.rest.port}/tx/${hash}`, {
+    const response = await request(`${config.dev.url}/tx/${hash}`, {
       method: 'GET',
       json: true,
       headers: {
@@ -88,7 +88,7 @@ module.exports = (ctx) => {
 
   it('GET /tx/:addr/history when no tx in db - get []', async () => {
     const address = generateAddress();
-    const response = await request(`http://localhost:${config.rest.port}/tx/${address}/history`, {
+    const response = await request(`${config.dev.url}/tx/${address}/history`, {
       method: 'GET',
       json: true,
       headers: {
@@ -100,7 +100,7 @@ module.exports = (ctx) => {
 
   it('GET /tx/:addr/history with non exist address - get []', async () => {
     const address = generateAddress();
-    const response = await request(`http://localhost:${config.rest.port}/tx/${address}/history`, {
+    const response = await request(`${config.dev.url}/tx/${address}/history`, {
       method: 'GET',
       json: true,
       headers: {
@@ -111,7 +111,8 @@ module.exports = (ctx) => {
   });
 
   it('GET /tx/:addr/history with exist address (in db two him txs and not him) - get right txs', async () => {
-    const address = generateAddress();
+    const address = generateAddress(),
+        secondAddress = generateAddress();
     const txs = [];
     txs[0] = await models.txModel.findOneAndUpdate({'_id': 'TEST1'}, {
       recipient: address,
@@ -120,7 +121,7 @@ module.exports = (ctx) => {
     }, {upsert: true});
 
     await models.txModel.findOneAndUpdate({'_id': 'HASHES'}, {
-      recipient: generateAddress('another'),
+      recipient: secondAddress,
       timestamp: 1,
       blockNumber: 5
     }, {upsert: true});
@@ -132,8 +133,7 @@ module.exports = (ctx) => {
     }, {upsert: true});
 
 
-
-    const response = await request(`http://localhost:${config.rest.port}/tx/${address}/history`, {
+    const response = await request(`${config.dev.url}/tx/${address}/history`, {
       method: 'GET',
       json: true,
       headers: {
@@ -143,13 +143,13 @@ module.exports = (ctx) => {
     expect(response.length).to.equal(2);
     expect(response).to.deep.equal([
       {
-        recipient: 'ADDRZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ',
+        recipient: address,
         mosaics: [],
         blockNumber: 7,
         hash: 'TEST2',
         timeStamp: 2 
       }, { 
-        recipient: 'ADDRZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ',
+        recipient: address,
         mosaics: [],
         blockNumber: 5,
         hash: 'TEST1',
