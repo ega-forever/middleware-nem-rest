@@ -120,7 +120,7 @@ module.exports = (ctx) => {
     }, {upsert: true});
 
     await models.txModel.findOneAndUpdate({'_id': 'HASHES'}, {
-      recipient: generateAddress(),
+      recipient: generateAddress('another'),
       timestamp: 1,
       blockNumber: 5
     }, {upsert: true});
