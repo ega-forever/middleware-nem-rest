@@ -31,7 +31,8 @@ module.exports = (ctx) => {
   });
 
   it('POST /addr -  rabbitmq message account.create with addr', async () => {
-    const address = generateAddress('test1');
+    const address = generateAddress();
+    
     ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
     await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.create`);
 
@@ -49,18 +50,16 @@ module.exports = (ctx) => {
 
           const content = JSON.parse(msg.content);
           expect(content.address).to.equal(address);
-
-          await ctx.amqp.channel.deleteQueue('test_addr');
           res();
         }));
       })()
     ]);
+    await ctx.amqp.channel.deleteQueue('test_addr');
 
   });
 
   it('POST /addr with exist addr - get response', async () => {
     const address = generateAddress('test');
-
     const response = await request(`${config.dev.url}/addr`, {
       method: 'POST',
       json: {address}
@@ -71,6 +70,7 @@ module.exports = (ctx) => {
 
   it('send message address.created from laborx - get events message account.created after account in mongo', async () => {
     const address = generateAddress();
+    
     ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
     await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.created`);
     await Promise.all([
@@ -86,11 +86,13 @@ module.exports = (ctx) => {
               return;
 
             const content = JSON.parse(msg.content);
+            if (content.address !== address)
+                return;
             expect(content.address).to.equal(address);
-            await ctx.amqp.channel.deleteQueue('test_addr');
             res();
           })
         );
+        await ctx.amqp.channel.deleteQueue('test_addr');
 
         const isExist = await models.accountModel.count({address});
         expect(!!isExist).to.equal(true);
@@ -119,10 +121,12 @@ module.exports = (ctx) => {
             return;
 
           const content = JSON.parse(msg.content);
+          if (content.address !== address)
+            return;
           expect(content.address).to.equal(address);
-          await ctx.amqp.channel.deleteQueue('test_addr');
           res();
         }));
+        await ctx.amqp.channel.deleteQueue('test_addr');
         const isExist = await models.accountModel.count({address});
         expect(!!isExist).to.equal(true);
       })()
@@ -131,6 +135,7 @@ module.exports = (ctx) => {
 
   it('send message address.created from laborx with exist addr - get messages user.created, account.created with account in mongo', async () => {
     const address = generateAddress();
+    
     ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
     await ctx.amqp.channel.bindQueue('test_addr', 'internal', `${config.rabbit.serviceName}_user.created`);
     
@@ -149,10 +154,12 @@ module.exports = (ctx) => {
             return;
 
           const content = JSON.parse(msg.content);
+          if (content.address !== address)
+            return;
           expect(content.address).to.equal(address);
-          await ctx.amqp.channel.deleteQueue('test_addr');
           res();
         }));
+        await ctx.amqp.channel.deleteQueue('test_addr');
         const isExist = await models.accountModel.count({address});
         expect(!!isExist).to.equal(true);
       })(),
@@ -164,11 +171,12 @@ module.exports = (ctx) => {
             return;
 
           const content = JSON.parse(msg.content);
+          if (content.address !== address)
+            return;
           expect(content.address).to.equal(address);
-          await ctx.amqp.channel.deleteQueue('test_addr2');
           res();
         }));
-
+        await ctx.amqp.channel.deleteQueue('test_addr2');
         const isExist = await models.accountModel.count({address});
         expect(!!isExist).to.equal(true);
       })()
@@ -179,6 +187,7 @@ module.exports = (ctx) => {
 
   it('send event message account.create  - get events message account.created after account in mongo', async () => {
     const address = generateAddress();
+    
     ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
     await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.created`);
     
@@ -195,10 +204,12 @@ module.exports = (ctx) => {
             return;
 
           const content = JSON.parse(msg.content);
+          if (content.address !== address)
+            return;
           expect(content.address).to.equal(address);
-          await ctx.amqp.channel.deleteQueue('test_addr');
           res();
         }));
+        await ctx.amqp.channel.deleteQueue('test_addr');
 
         const isExist = await models.accountModel.count({address});
         expect(!!isExist).to.equal(true);
@@ -208,6 +219,7 @@ module.exports = (ctx) => {
 
   it('send event message account.create  - get internal message user.created after account in mongo', async () => {
     const address = generateAddress();
+    
     ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
     await ctx.amqp.channel.bindQueue('test_addr', 'internal', `${config.rabbit.serviceName}_user.created`);
     
@@ -224,10 +236,12 @@ module.exports = (ctx) => {
             return;
 
           const content = JSON.parse(msg.content);
+          if (content.address != address)
+            return;
           expect(content.address).to.equal(address);
-          await ctx.amqp.channel.deleteQueue('test_addr');
           res();
         }));
+        await ctx.amqp.channel.deleteQueue('test_addr');
 
         const isExist = await models.accountModel.count({address});
         expect(!!isExist).to.equal(true);
@@ -237,6 +251,8 @@ module.exports = (ctx) => {
 
   it('send message address.deleted from laborx - get events message account.deleted after account deleted in mongo', async () => {
     const address = generateAddress();
+    await models.accountModel.create({address});
+    
     ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
     await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.deleted`);
     
@@ -253,10 +269,12 @@ module.exports = (ctx) => {
             return;
 
           const content = JSON.parse(msg.content);
+          if (content.address !== address)
+            return;
           expect(content.address).to.equal(address);
-          await ctx.amqp.channel.deleteQueue('test_addr');
           res();
         }));
+        await ctx.amqp.channel.deleteQueue('test_addr');
 
         const isExists = await models.accountModel.count({address});
         expect(!!isExists).to.equal(true);
@@ -267,6 +285,7 @@ module.exports = (ctx) => {
 
   it('send message address.deleted from laborx about not exist addr - get account.deleted event', async () => {
     const address = generateAddress('test4');
+    
     
     ctx.amqp.queue = await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
     await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.deleted`);
@@ -285,19 +304,22 @@ module.exports = (ctx) => {
             return;
 
           const content = JSON.parse(msg.content);
+          if (content.address !== address)
+            return;
           expect(content.address).to.equal(address);
-          await ctx.amqp.channel.deleteQueue('test_addr');
           res();
         }));
+        await ctx.amqp.channel.deleteQueue('test_addr');
         const account = await models.accountModel.findOne({address});
-        expect(account.isActive).to.equal(false);
+        expect(account).to.be.null;
       })()
     ]);
   });
 
-
   it('GET /addr/:addr/balance - and get response with balance', async () => {
     const address = generateAddress('test7');
+    await models.accountModel.create({address});
+    
 
     const response = await request(`${config.dev.url}/addr/${address}/balance`, {
       method: 'GET',
@@ -320,8 +342,9 @@ module.exports = (ctx) => {
 
   it('GET /addr/:addr/balance - and get response with balance and mosaics', async () => {
     const address = generateAddress('test7');
+    
 
-    await models.accountModel.update({address}, {
+    await models.accountModel.create({address,
       balance: {
         confirmed: 300*1000000,
         unconfirmed: 500*1000000,

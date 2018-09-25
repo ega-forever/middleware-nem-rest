@@ -47,7 +47,6 @@ module.exports = (ctx) => {
         Authorization: `Bearer ${config.dev.laborx.token}`
       }
     }).catch(e => e);
-    console.log(response);
 
     expect(response).to.deep.equal({
       'recipient': toAddress,

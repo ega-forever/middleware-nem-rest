@@ -11,17 +11,15 @@ services:
 
 before_install:
   - export LABORX_USE_AUTH=1
+  - export NIS=http://192.3.61.243:7778
+  - export WEBSOCKET_NIS=http://192.3.61.243:7778
+  - export USE_MONGO_DATA=1
   - mongo data --eval 'db.dropDatabase();'
   - sudo apt-get update
   - sudo apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev -y
 
 install:
   - npm install
-
-before_script:
-    - echo NIS=http://192.3.61.243:7890 > .env
-    - echo WEBSOCKET_NIS=http://192.3.61.243:7778 >> .env
-    - echo USE_MONGO_DATA=1 >> .env
 
 script:
   - npm test -- --coverage

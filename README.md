@@ -124,6 +124,7 @@ The options are presented below:
 | REST_PORT   | rest plugin port
 | NETWORK   | network name (alias)- is used for connecting via node rest api (see block processor section)
 | NIS   | node rest api path address 
+| WEBSOCKET_NIS   | node websocket api path address 
 | NODERED_MONGO_URI   | the URI string for mongo collection for keeping node-red users and flows (optional, if omitted - then default MONGO_URI will be used)
 | HTTP_ADMIN | admin path for nodered or false (if not publish as default)
 | LABORX | url for laborxAuth [default=http://localhost:3001/api/v1/security]
