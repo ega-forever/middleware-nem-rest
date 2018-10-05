@@ -3,44 +3,26 @@ dist: trusty
 os: linux
 group: stable
 language: node_js
-node_js: 7.6.0
+node_js: 8.11.3
 
 services:
   - mongodb
   - rabbitmq
 
 before_install:
+  - export LABORX_USE_AUTH=1
+  - export NIS=http://192.3.61.243:7778
+  - export WEBSOCKET_NIS=http://192.3.61.243:7778
+  - export USE_MONGO_DATA=1
   - mongo data --eval 'db.dropDatabase();'
   - sudo apt-get update
   - sudo apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev -y
 
 install:
-  - sudo rabbitmq-plugins enable rabbitmq_web_stomp
   - npm install
-  - npm install -g pm2
-
-before_script:
-    - echo NIS=http://192.3.61.243:7890 > .env
-    - echo WEBSOCKET_NIS=http://192.3.61.243:7778 >> .env
-    - echo USE_MONGO_DATA=1 >> .env
-
-    - |
-      if [ "$TRAVIS_BRANCH" == "master" ]; then
-        cd $TRAVIS_BUILD_DIR/ && git clone https://github.com/chronobank/middleware-nem-blockprocessor 
-      else
-        cd $TRAVIS_BUILD_DIR/ && git clone -b develop https://github.com/chronobank/middleware-nem-blockprocessor 
-      fi;
-    - cd $TRAVIS_BUILD_DIR/middleware-nem-blockprocessor && npm install
-    - sleep 30 && cd $TRAVIS_BUILD_DIR/middleware-nem-blockprocessor && pm2 start index.js
-    - cd $TRAVIS_BUILD_DIR && pm2 start index.js
-
 
 script:
-  - sleep 30 && npm test -- --coverage
-
-after_script:
-  - pm2 logs --nostream
-  - pm2 kill && pkill PM2
+  - npm test -- --coverage
 
 after_success:
   - FULL_GCR_KEY="-----BEGIN PRIVATE KEY-----\n"$GCR_KEY"\n-----END PRIVATE KEY-----\n"

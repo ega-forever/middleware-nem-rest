@@ -1,309 +1,59 @@
-/** 
-* Copyright 2017–2018, LaborX PTY
-* Licensed under the AGPL Version 3 license.
-* @author Kirill Sergeev <cloudkserg11@gmail.com>
-*/
+/**
+ * Copyright 2017–2018, LaborX PTY
+ * Licensed under the AGPL Version 3 license.
+ * @author Kirill Sergeev <cloudkserg11gmail.com>
+ */
+
 require('dotenv/config');
+process.env.LOG_LEVEL = 'error';
 
-process.env.USE_MONGO_DATA = 1;
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-const config = require('./config'),
-  mongoose = require('mongoose'),
+const config = require('../config'),
+  models = require('../models'),
+  spawn = require('child_process').spawn,
+  _ = require('lodash'),
+  fuzzTests = require('./fuzz'),
+  performanceTests = require('./performance'),
+  featuresTests = require('./features'),
   Promise = require('bluebird'),
-  expect = require('chai').expect,
-  _ = require('lodash');
-
+  mongoose = require('mongoose'),
+  amqp = require('amqplib'),
+  ctx = {};
 
 mongoose.Promise = Promise;
-mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
-mongoose.data = mongoose.createConnection(config.mongo.data.uri);
+mongoose.data = mongoose.createConnection(config.mongo.data.uri, {useMongoClient: true});
+mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri, {useMongoClient: true});
+mongoose.profile = mongoose.createConnection(config.mongo.profile.uri, {useMongoClient: true});
 
-const txModel = require('../models/txModel'),
-  accountModel = require('../models/accountModel'),
-  clearQueues = require('./helpers/clearQueues'),
-  connectToQueue = require('./helpers/connectToQueue'),
-  consumeMessages = require('./helpers/consumeMessages'),
-  saveAccountForAddress = require('./helpers/saveAccountForAddress'),
-  getAccountFromMongo = require('./helpers/getAccountFromMongo'),
-  request = require('request'),
-  amqp = require('amqplib');
+describe('core/nemRest', function () {
 
-let accounts, amqpInstance;
+  before (async () => {
+    models.init();
+    ctx.amqp = {};
+    ctx.amqp.instance = await amqp.connect(config.rabbit.url);
+    ctx.amqp.channel = await ctx.amqp.instance.createChannel();
+    await ctx.amqp.channel.assertExchange('events', 'topic', {durable: false});
+    await ctx.amqp.channel.assertExchange('profiles', 'fanout', {durable: true});
 
-describe('core/rest', function () { //todo add integration tests for query, push tx, history and erc20tokens
-
-  before(async () => {
-    await txModel.remove();
-    await accountModel.remove();
-    amqpInstance = await amqp.connect(config.rabbit.url);
-
-    accounts = config.dev.accounts;
-    await saveAccountForAddress(accounts[0]);
-    await clearQueues(amqpInstance);
+    ctx.laborxPid = spawn('node', ['tests/utils/laborxProxy.js'], {
+      env: process.env, stdio: 'ignore'
+    });
+    await Promise.delay(10000);
   });
 
-  after(async () => {
-    return mongoose.disconnect();
-  });
-
-  afterEach(async () => {
-    await clearQueues(amqpInstance);
-  });
-
-  it('address/create from post request', async () => {
-    const newAddress = `${_.chain(new Array(40)).map(() => _.random(0, 9)).map().join('').value()}`;
-    accounts.push(newAddress);
-
-    await new Promise.all([
-      (async() => {
-        await new Promise((res, rej) => {
-          request({
-            url: `http://localhost:${config.rest.port}/addr/`,
-            method: 'POST',
-            json: {address: newAddress}
-          }, async (err, resp) => {
-            if (err || resp.statusCode !== 200) 
-              return rej(err || resp);
-            const account = await getAccountFromMongo(newAddress);
-            expect(account).not.to.be.null;
-            expect(account.isActive).to.be.true;
-            res();
-          });
-        });
-      })(),
-      (async () => {
-        const channel = await amqpInstance.createChannel();
-        await channel.assertExchange('internal', 'topic', {durable: false});
-        const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test.user`);
-        await channel.bindQueue(`${config.rabbit.serviceName}_test.user`, 'internal', 
-          `${config.rabbit.serviceName}_user.created`
-        );
-        return await new Promise(res => channel.consume(`${config.rabbit.serviceName}_test.user`, async (message) => {
-          const content = JSON.parse(message.content);
-          if (content.address == newAddress)
-            res();
-        }, {noAck: true}));
-      })()
-    ]);
-
-  });
-
-  it('address/create from rabbit mq', async () => {
-    const newAddress = `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-    accounts.push(newAddress);    
-
-    const channel = await amqpInstance.createChannel();
-    await Promise.all([
-      (async () => {
  
-        const info = {address: newAddress};
-        await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
-    
-        await Promise.delay(8000);
-    
-        const account = await getAccountFromMongo(newAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.true;
-        expect(account.balance.confirmed.toNumber()).to.be.equal(0);
-      })(),
-      (async () => {
-        // const channel = await amqpInstance.createChannel();
-        // await channel.assertExchange('events', 'topic', {durable: false});
-        // const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test_created`);
-        // await channel.bindQueue(`${config.rabbit.serviceName}_test_created`, 'events', 
-        //   `${config.rabbit.serviceName}.account.created`
-        // );
-        // return await new Promise(res => channel.consume(`${config.rabbit.serviceName}_test_created`, async (message) => {
-        //   const content = JSON.parse(message.content);
-          
-        //   if (content.address == newAddress)
-        //     res();
-        // }, {noAck: true}));
-      })()
-    ]);
+
+
+  describe('performance', () => performanceTests(ctx));
+
+  describe('fuzz', () => fuzzTests(ctx));
+
+  describe('features', () => featuresTests(ctx));
+
+
+  after (async () => {
+    mongoose.disconnect();
+    await ctx.amqp.instance.close();
+    await ctx.laborxPid.kill();
   });
-
-  it('address/update balance address by amqp', async () => {
-    const channel = await amqpInstance.createChannel();
-    const info = {address: accounts[0]};
-    await channel.publish('events', `${config.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
-
-    await Promise.delay(3000);
-
-    const account = await getAccountFromMongo(accounts[0]);
-    expect(account).not.to.be.null;
-    expect(account.balance.confirmed.toNumber()).to.be.not.undefined;
-  });
-
-  it('address/remove by rest', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length-1)[0];
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/`,
-        method: 'DELETE',
-        json: {address: removeAddress}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200)
-          return rej(err || resp);
-        
-        const account = await getAccountFromMongo(removeAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.false;
-        res();
-      });
-    });
-  });
-
-  it('address/remove from rabbit mq', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length-1)[0];
-    const acc = await saveAccountForAddress(removeAddress);   
-
-    const channel = await amqpInstance.createChannel();
-    await Promise.all([
-      (async () => {
-        const info = {address: removeAddress};
-        await Promise.delay(6000);
-        await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
-    
-        await Promise.delay(6000);
-    
-        const account = await getAccountFromMongo(removeAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.false;
-      })(),
-      (async () => {
-        await connectToQueue(channel, `${config.rabbit.serviceName}.account.deleted`);
-        return await consumeMessages(1, channel, (message) => {
-          const content = JSON.parse(message.content);
-          expect(content.address).to.be.equal(removeAddress);
-          return true;
-        });
-      })()
-    ]);
-   });
-
-
- it('address/balance by rest', async () => {
-    const address = accounts[0];
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/${address}/balance`,
-        method: 'GET',
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200) 
-          return rej(err);
-
-        const body = JSON.parse(resp.body);
-        expect(body.balance.confirmed.value).to.be.not.undefined;
-        expect(body.mosaics).to.be.not.undefined;
-        expect(body.mosaics).an('object').to.be.not.undefined;
-        res();
-      });
-    });
-  });
-
-  let exampleTransactionHash;
-
-  it('GET tx/:addr/history for some query params and one right transaction [0 => 1]', async () => {
-    const txs = [{
-      _id : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
-      type : '257',
-      signer : 'fa97f4fd052e40937180f72987189df429cc1f79996d439787cd13b76ff46caf',
-      recipient : accounts[1],
-      sender : accounts[0],
-      mosaics : [],
-      amount: 200,
-      timestamp: Date.now(),
-      blockNumber : 1425994
-    }, {
-      _id : `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`,
-      recipient : 'TDFSDFSFSDFSDFSDFSDFSDFSDFSDFSDFS',
-      type : '257',
-      timestamp: Date.now(),
-      signer : 'fa97f4fd052e40937180f72987189df429cc1f79996d439787cd13b76ff46caf',
-      sender : 'FDGDGDFGDFGDFGDFGDFGDFGDFGDFGD',
-      mosaics : [],
-      amount: 100,
-      blockNumber : 1425994
-    }];
-    exampleTransactionHash = txs[0]._id;
-    await txModel.create(txs[0]);
-    await txModel.create(txs[1]);
-
-    const query = 'limit=1';
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/tx/${accounts[0]}/history?${query}`,
-        method: 'GET',
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200) 
-          return rej(err);
-
-        try {
-          expect(resp.body).to.not.be.empty;
-          const body = JSON.parse(resp.body);
-          expect(body).to.be.an('array').not.empty;
-
-          const respTx = body[0];
-          expect(respTx.recipient).to.equal(accounts[1]);
-          expect(respTx.sender).to.equal(accounts[0]);
-          expect(respTx.hash).to.equal(exampleTransactionHash);
-          expect(respTx).to.contain.all.keys([
-            'hash', 'blockNumber', 'timeStamp', 'amount']
-          );
-          res();            
-        } catch (e) {
-          rej(e);
-        }
-      });
-    });
-  });
-
-
-  it('GET tx/:addr/history for non exist', async () => {
-    const address = 'LAAAAAAAAAAAAAAAALLL';
-
-
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/tx/${address}/history`,
-        method: 'GET',
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200) 
-          return rej(err);
-
-        const body = JSON.parse(resp.body);
-        expect(body).to.be.empty;
-        res();
-      });
-    });
-  });
-
-  it('GET tx/:hash for transaction [0 => 1]', async () => {
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/tx/${exampleTransactionHash}`,
-        method: 'GET',
-      }, (err, resp) => {
-        if (err || resp.statusCode !== 200) 
-          return rej(err);
-
-        const respTx = JSON.parse(resp.body);
-        expect(respTx.recipient).to.equal(accounts[1]);
-        expect(respTx.sender).to.equal(accounts[0]);
-        expect(respTx).to.contain.all.keys([
-          'hash', 'blockNumber', 'amount', 'timeStamp'
-        ]);
-        res();
-      });
-    });
-  }); 
-
 
 });
-

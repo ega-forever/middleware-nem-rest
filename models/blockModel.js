@@ -19,4 +19,4 @@ const Block = new mongoose.Schema({
 }, {_id: false});
 
 
-module.exports = mongoose.data.model(`${config.mongo.data.collectionPrefix}Block`, Block);
+module.exports = () => mongoose.data.model(`${config.mongo.data.collectionPrefix}Block`, Block);

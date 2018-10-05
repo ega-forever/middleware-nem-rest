@@ -2,12 +2,15 @@
   "name": "middleware_nem.rest",
   "version": "1.0.0",
   "main": "index.js",
+  "requirements": {},
   "dependencies": {
-    "middleware_service.sdk": "github:chronobank/middleware-service-sdk",
     "bluebird": "^3.5.0",
     "bunyan": "^1.8.12",
     "dotenv": "^4.0.0",
     "lodash": "^4.17.4",
+    "middleware-common-components": "github:ChronoBank/middleware-common-components",
+    "middleware_service.sdk": "github:chronobank/middleware-service-sdk",
+    "middleware_common_infrastructure": "^1.0.5",
     "mongoose": "^4.11.7",
     "mongoose-long": "^0.1.1",
     "nem-sdk": "^1.6.1",
@@ -29,8 +32,8 @@
   "author": "chronobank",
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/ChronoBank/middleware-nem-balance-processor/issues"
+    "url": "https://github.com/ChronoBank/middleware-nem-rest/issues"
   },
-  "homepage": "https://github.com/ChronoBank/middleware-nem-balance-processor#readme",
+  "homepage": "https://github.com/ChronoBank/middleware-nem-rest#readme",
   "description": "Middleware NEM rest"
 }

@@ -50,30 +50,46 @@ const createConfigProviders = (providers) => {
 
 const providers = createConfigProviders(process.env.PROVIDERS || getDefault()),
   nemUrl = new URL(providers[0].http),
-  nemWebsocketUrl = new URL(providers[0].ws);
+  nemWebsocketUrl = new URL(providers[0].ws),
+  accountPrefix = process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
+  profilePrefix = process.env.MONGO_PROFILE_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
+  collectionPrefix = process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
+  node = {
+    network: parseInt(process.env.NETWORK) || -104,
+    networkName: process.env.NETWORK_NAME || 'testnet',
+    providers: createConfigProviders(process.env.PROVIDERS || getDefault())
+  },
+  rabbit = {
+    url: process.env.RABBIT_URI || 'amqp://localhost:5672',
+    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
+  };
+
 
 
 let config = {
   mongo: {
     accounts: {
       uri: process.env.MONGO_ACCOUNTS_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem'
+      collectionPrefix: accountPrefix
+    },
+    profile: {
+      uri: process.env.MONGO_PROFILE_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
+      collectionPrefix: profilePrefix
     },
     data: {
       uri: process.env.MONGO_DATA_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
+      collectionPrefix,
       useData: parseInt(process.env.USE_MONGO_DATA) || 1
     }
   },
-  node: {
-    network: parseInt(process.env.NETWORK) || -104,
-    networkName: process.env.NETWORK_NAME || 'testnet',
-    providers: createConfigProviders(process.env.PROVIDERS || getDefault())
+  node,
+  rabbit,
+  systemRabbit: {
+    url: process.env.SYSTEM_RABBIT_URI || process.env.RABBIT_URI || 'amqp://localhost:5672',
+    exchange: process.env.SYSTEM_RABBIT_EXCHANGE || 'internal',
+    serviceName: process.env.SYSTEM_RABBIT_SERVICE_NAME || 'system' 
   },
-  rabbit: {
-    url: process.env.RABBIT_URI || 'amqp://localhost:5672',
-    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
-  },
+  checkSystem: process.env.CHECK_SYSTEM ? parseInt(process.env.CHECK_SYSTEM) : true,
   rest: {
     domain: process.env.DOMAIN || 'localhost',
     port: parseInt(process.env.REST_PORT) || 8081
@@ -83,7 +99,13 @@ let config = {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
       collectionPrefix: process.env.NODE_RED_MONGO_COLLECTION_PREFIX || '',
     },
+    logging: {
+      console: {
+        level: process.env.LOG_LEVEL || 'info'
+      }
+    },
     migrationsDir: path.join(__dirname, '../migrations'),
+    useLocalStorage: false,
     migrationsInOneFile: true,
     httpAdminRoot: process.env.HTTP_ADMIN || false,
     autoSyncMigrations: _.isString(process.env.NODERED_AUTO_SYNC_MIGRATIONS) ? parseInt(process.env.NODERED_AUTO_SYNC_MIGRATIONS) : true,
@@ -93,23 +115,25 @@ let config = {
       },
       settings: {
         mongo: {
-          accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
-          collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem'
+          accountPrefix,
+          collectionPrefix
         },
-        rabbit: {
-          url: process.env.RABBIT_URI || 'amqp://localhost:5672',
-          serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
+        rabbit,
+        nem: {
+          endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
+          websocketEndpoint: nem.model.objects.create('endpoint')(`${nemWebsocketUrl.protocol}//${nemWebsocketUrl.hostname}`, nemWebsocketUrl.port),
+          lib: nem
+        },
+        node,
+        laborx: {
+          url: process.env.LABORX_RABBIT_URI || 'amqp://localhost:5672',
+          serviceName: process.env.LABORX_RABBIT_SERVICE_NAME || '',
+          authProvider: process.env.LABORX || 'http://localhost:3001/api/v1/security',
+          profileModel: profilePrefix + 'Profile',
+          useAuth: process.env.LABORX_USE_AUTH ? parseInt(process.env.LABORX_USE_AUTH) : false,
+          useCache: process.env.LABORX_USE_CACHE ? parseInt(process.env.LABORX_USE_CACHE) : true,
+          dbAlias: 'profile'
         }
-      },
-      nem: {
-        endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
-        websocketEndpoint: nem.model.objects.create('endpoint')(`${nemWebsocketUrl.protocol}//${nemWebsocketUrl.hostname}`, nemWebsocketUrl.port),
-        lib: nem
-      },
-      node: {
-        network: parseInt(process.env.NETWORK) || -104,
-        networkName: process.env.NETWORK_NAME || 'testnet',
-        providers: providers
       }
     }
   }

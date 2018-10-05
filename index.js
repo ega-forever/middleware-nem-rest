@@ -6,9 +6,16 @@
 const config = require('./config'),
   mongoose = require('mongoose'),
   bunyan = require('bunyan'),
-  log = bunyan.createLogger({name: 'core.rest'}),
+  Promise = require('bluebird'),
+  log = bunyan.createLogger({name: 'core.rest', level: config.nodered.logging.console.level}),
   path = require('path'),
+  
+  AmqpService = require('middleware_common_infrastructure/AmqpService'),
+  InfrastructureInfo = require('middleware_common_infrastructure/InfrastructureInfo'),
+  InfrastructureService = require('middleware_common_infrastructure/InfrastructureService'),
+  
   _ = require('lodash'),
+  models = require('./models'),
   migrator = require('middleware_service.sdk').migrator,
   redInitter = require('middleware_service.sdk').init;
 
@@ -20,12 +27,29 @@ const config = require('./config'),
 
 
 mongoose.Promise = Promise;
-mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
+mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri, {useMongoClient: true});
+mongoose.profile = mongoose.createConnection(config.mongo.profile.uri, {useMongoClient: true});
+mongoose.data = mongoose.createConnection(config.mongo.data.uri, {useMongoClient: true});
 
-if (config.mongo.data.useData) 
-  mongoose.data = mongoose.createConnection(config.mongo.data.uri);
+const runSystem = async function () {
+  const rabbit = new AmqpService(
+    config.systemRabbit.url, 
+    config.systemRabbit.exchange,
+    config.systemRabbit.serviceName
+  );
+  const info = new InfrastructureInfo(require('./package.json'));
+  const system = new InfrastructureService(info, rabbit, {checkInterval: 10000});
+  await system.start();
+  system.on(system.REQUIREMENT_ERROR, (requirement, version) => {
+    log.error(`Not found requirement with name ${requirement.name} version=${requirement.version}.` +
+        ` Last version of this middleware=${version}`);
+    process.exit(1);
+  });
+  await system.checkRequirements();
+  system.periodicallyCheck();
+};
 
-_.chain([mongoose.accounts, mongoose.data])
+_.chain([mongoose.accounts, mongoose.data, mongoose.profile])
   .compact().forEach(connection =>
     connection.on('disconnected', function () {
       log.error('mongo disconnected!');
@@ -33,18 +57,24 @@ _.chain([mongoose.accounts, mongoose.data])
     })
   ).value();
 
-const init = async () => {
+models.init();
 
-  require('require-all')({
-    dirname: path.join(__dirname, '/models'),
-    filter: /(.+Model)\.js$/
-  });
+
+const init = async () => {
+  if (config.checkSystem)
+    await runSystem();
 
   if (config.nodered.autoSyncMigrations)
-    await migrator.run(config.nodered.mongo.uri, path.join(__dirname, 'migrations'));
+    await migrator.run(
+      config,
+      path.join(__dirname, 'migrations')
+    );
 
   redInitter(config);
 
 };
 
-module.exports = init();
+module.exports = init().catch((e) => {
+  log.error(e);
+  process.exit(1);
+});
