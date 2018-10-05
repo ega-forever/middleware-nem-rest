@@ -29,6 +29,9 @@ const createConfigProviders = (providers) => {
     })
     .value();
 };
+
+const accountPrefix = process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem';
+
 /**
  * @factory config
  * @description base app's configuration
@@ -58,6 +61,10 @@ let config = {
     accounts: {
       uri: process.env.MONGO_ACCOUNTS_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
       collectionPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem'
+    },
+    profile: {
+      uri: process.env.MONGO_PROFILE_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
+      collectionPrefix: process.env.MONGO_PROFILE_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem'
     },
     data: {
       uri: process.env.MONGO_DATA_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
@@ -93,12 +100,17 @@ let config = {
       },
       settings: {
         mongo: {
-          accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
+          accountPrefix,
           collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem'
         },
         rabbit: {
           url: process.env.RABBIT_URI || 'amqp://localhost:5672',
           serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
+        },
+        laborx: {
+          authProvider: process.env.LABORX || 'http://localhost:3001/api/v1/security',
+          profileModel: accountPrefix + 'Profile',
+          dbAlias: 'accounts'
         }
       },
       nem: {
@@ -110,7 +122,7 @@ let config = {
         network: parseInt(process.env.NETWORK) || -104,
         networkName: process.env.NETWORK_NAME || 'testnet',
         providers: providers
-      }
+      },
     }
   }
 };

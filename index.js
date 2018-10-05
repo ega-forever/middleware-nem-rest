@@ -21,6 +21,7 @@ const config = require('./config'),
 
 mongoose.Promise = Promise;
 mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
+mongoose.profile = mongoose.createConnection(config.mongo.profile.uri);
 
 if (config.mongo.data.useData) 
   mongoose.data = mongoose.createConnection(config.mongo.data.uri);
@@ -32,6 +33,9 @@ _.chain([mongoose.accounts, mongoose.data])
       process.exit(0);
     })
   ).value();
+
+config.nodered.functionGlobalContext.connections.primary = mongoose;
+
 
 const init = async () => {
 
