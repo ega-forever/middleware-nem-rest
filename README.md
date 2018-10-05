@@ -113,6 +113,8 @@ The options are presented below:
 | ------ | ------ |
 | MONGO_URI   | the URI string for mongo connection
 | MONGO_COLLECTION_PREFIX   | the default prefix for all mongo collections. The default value is 'nem'
+| MONGO_PROFILE_URI   | the URI string for mongo connection, which holds profile accounts (if not specified, then default MONGO_URI connection will be used) [for token from laborx]
+| MONGO_PROFILE_COLLECTION_PREFIX   | the collection prefix for profile collection in mongo (If not specified, then the default MONGO_COLLECTION_PREFIX will be used) [for token from laborx]
 | MONGO_ACCOUNTS_URI   | the URI string for mongo connection, which holds users accounts (if not specified, then default MONGO_URI connection will be used)
 | MONGO_ACCOUNTS_COLLECTION_PREFIX   | the collection prefix for accounts collection in mongo (If not specified, then the default MONGO_COLLECTION_PREFIX will be used)
 | MONGO_DATA_URI   | the URI string for mongo connection, which holds data collections (for instance, processed block's height). In case, it's not specified, then default MONGO_URI connection will be used)
@@ -124,6 +126,7 @@ The options are presented below:
 | NIS   | node rest api path address 
 | NODERED_MONGO_URI   | the URI string for mongo collection for keeping node-red users and flows (optional, if omitted - then default MONGO_URI will be used)
 | HTTP_ADMIN | admin path for nodered or false (if not publish as default)
+| LABORX | url for laborxAuth [default=http://localhost:3001/api/v1/security]
 
 ### format balance for accounts
 ```
