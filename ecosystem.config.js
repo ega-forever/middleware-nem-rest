@@ -4,7 +4,7 @@ const env = {
   RABBIT_URI: 'amqp://rabbit:nC865xfpbU41@rabbitmq-rabbitmq-svc.default:5672',
   RABBIT_SERVICE_NAME: 'testnet-nem-middleware-chronobank-io',
   NETWORK: '-104',
-  PROVIDERS: 'http://nis-testnet.default:7890@tcp://nis-testnet.default:7778',
+  PROVIDERS: 'http://nis-testnet.default:7890@http://nis-testnet.default:7778',
   REST_PORT: 8080
 };
 const env_develop = {
@@ -13,7 +13,7 @@ const env_develop = {
   RABBIT_URI: 'amqp://rabbit:nC865xfpbU41@rabbitmq-rabbitmq-svc.default:5672',
   RABBIT_SERVICE_NAME: 'testnet-nem-middleware-chronobank-io',
   NETWORK: '-104',
-  PROVIDERS: 'http://nis-testnet.default:7890@tcp://nis-testnet.default:7778',
+  PROVIDERS: 'http://nis-testnet.default:7890@http://nis-testnet.default:7778',
   REST_PORT: 8080
 };
 const env_stage = {
@@ -22,7 +22,7 @@ const env_stage = {
   RABBIT_URI: 'amqp://rabbit:nC865xfpbU41@rabbitmq-rabbitmq-svc.default:5672',
   RABBIT_SERVICE_NAME: 'testnet-nem-middleware-chronobank-io',
   NETWORK: '-104',
-  PROVIDERS: 'http://nis-testnet.default:7890@tcp://nis-testnet.default:7778',
+  PROVIDERS: 'http://nis-testnet.default:7890@http://nis-testnet.default:7778',
   REST_PORT: 8080
 };
 const env_prod = {
@@ -31,7 +31,7 @@ const env_prod = {
   RABBIT_URI: 'amqp://rabbit:nC865xfpbU41@rabbitmq-rabbitmq-svc.default:5672',
   RABBIT_SERVICE_NAME: 'mainnet-nem-middleware-chronobank-io',
   NETWORK: '104',
-  PROVIDERS: 'http://nis-mainnet.default:7890@tcp://nis-mainnet.default:7778',
+  PROVIDERS: 'http://nis-mainnet.default:7890@http://nis-mainnet.default:7778',
   REST_PORT: 8080
 };
 
