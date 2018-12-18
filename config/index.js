@@ -7,8 +7,7 @@ require('dotenv').config();
 const path = require('path'),
   _ = require('lodash'),
   URL = require('url').URL,
-  nem = require('nem-sdk').default,
-  mongoose = require('mongoose');
+  nodeRedGlobalContext = require('./nodeRedGlobalContext');
 
 const getDefault = () => {
   return (
@@ -48,42 +47,32 @@ const createConfigProviders = (providers) => {
  *    }}
  */
 
-const providers = createConfigProviders(process.env.PROVIDERS || getDefault()),
-  nemUrl = new URL(providers[0].http),
-  nemWebsocketUrl = new URL(providers[0].ws),
-  accountPrefix = process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
-  profilePrefix = process.env.MONGO_PROFILE_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
-  collectionPrefix = process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
-  node = {
-    network: parseInt(process.env.NETWORK) || -104,
-    networkName: process.env.NETWORK_NAME || 'testnet',
-    providers: createConfigProviders(process.env.PROVIDERS || getDefault())
-  },
-  rabbit = {
-    url: process.env.RABBIT_URI || 'amqp://localhost:5672',
-    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
-  };
-
-
 
 let config = {
   mongo: {
     accounts: {
       uri: process.env.MONGO_ACCOUNTS_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix: accountPrefix
+      collectionPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem'
     },
     profile: {
       uri: process.env.MONGO_PROFILE_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix: profilePrefix
+      collectionPrefix: process.env.MONGO_PROFILE_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem'
     },
     data: {
       uri: process.env.MONGO_DATA_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix,
+      collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'nem',
       useData: parseInt(process.env.USE_MONGO_DATA) || 1
     }
   },
-  node,
-  rabbit,
+  node: {
+    network: parseInt(process.env.NETWORK) || -104,
+    networkName: process.env.NETWORK_NAME || 'testnet',
+    providers: createConfigProviders(process.env.PROVIDERS || getDefault())
+  },
+  rabbit: {
+    url: process.env.RABBIT_URI || 'amqp://localhost:5672',
+    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_nem'
+  },
   systemRabbit: {
     url: process.env.SYSTEM_RABBIT_URI || process.env.RABBIT_URI || 'amqp://localhost:5672',
     exchange: process.env.SYSTEM_RABBIT_EXCHANGE || 'internal',
@@ -109,35 +98,9 @@ let config = {
     migrationsInOneFile: true,
     httpAdminRoot: process.env.HTTP_ADMIN || false,
     autoSyncMigrations: _.isString(process.env.NODERED_AUTO_SYNC_MIGRATIONS) ? parseInt(process.env.NODERED_AUTO_SYNC_MIGRATIONS) : true,
-    functionGlobalContext: {
-      connections: {
-        primary: mongoose
-      },
-      settings: {
-        mongo: {
-          accountPrefix,
-          collectionPrefix
-        },
-        rabbit,
-        nem: {
-          endpoint: nem.model.objects.create('endpoint')(`${nemUrl.protocol}//${nemUrl.hostname}`, nemUrl.port),
-          websocketEndpoint: nem.model.objects.create('endpoint')(`${nemWebsocketUrl.protocol}//${nemWebsocketUrl.hostname}`, nemWebsocketUrl.port),
-          lib: nem
-        },
-        node,
-        laborx: {
-          url: process.env.LABORX_RABBIT_URI || 'amqp://localhost:5672',
-          serviceName: process.env.LABORX_RABBIT_SERVICE_NAME || '',
-          authProvider: process.env.LABORX || 'http://localhost:3001/api/v1/security',
-          profileModel: profilePrefix + 'Profile',
-          useAuth: process.env.LABORX_USE_AUTH ? parseInt(process.env.LABORX_USE_AUTH) : false,
-          useCache: process.env.LABORX_USE_CACHE ? parseInt(process.env.LABORX_USE_CACHE) : true,
-          dbAlias: 'profile'
-        }
-      }
-    }
   }
 };
 
+config.nodered.functionGlobalContext = nodeRedGlobalContext(config);
 module.exports = config;
 
